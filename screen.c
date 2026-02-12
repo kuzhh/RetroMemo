@@ -73,33 +73,33 @@ int mainMenuInit(tMainMenu* menu, SDL_Renderer* renderer, tAssets* assets)
 {
     int centerX = SCREEN_WIDTH / 2;
     int centerY = SCREEN_HEIGHT / 2;
-    int btnWidth = 240;
-    int btnHeight = 60;
-    int logoWidth = 158;
-    int logoHeight = 210;
+    int btnWidth = BTN_W;
+    int btnHeight = BTN_H;
+    int logoWidth = LOGO_W;
+    int logoHeight = LOGO_H;
 
     //logo
     //menu->logoRect = (SDL_Rect){250, 60, 300, 120};
     menu->logoRect.w = logoWidth;
     menu->logoRect.h = logoHeight;
     menu->logoRect.x = centerX - (logoWidth / 2);
-    menu->logoRect.y = 50;
+    menu->logoRect.y = 10;
 
     //btn SinglePlayer
     //menu->btnSP.rect = (SDL_Rect){300,250,200,50};
     menu->btnSP.rect.w = btnWidth;
     menu->btnSP.rect.h = btnHeight;
     menu->btnSP.rect.x = centerX - (btnWidth / 2);
-    menu->btnSP.rect.y = centerY;
+    menu->btnSP.rect.y = centerY + 50;
 
     menu->btnSP.state = BTN_NORMAL;
 
     //btn MultiPlayer
     menu->btnMP = menu->btnSP;
-    menu->btnMP.rect.y += 60;
+    menu->btnMP.rect.y += 90;
 
     menu->btnExit = menu->btnSP;
-    menu->btnExit.rect.y += 120;
+    menu->btnExit.rect.y += 180;
 
     SDL_Color white = {255,255,255,255};
 

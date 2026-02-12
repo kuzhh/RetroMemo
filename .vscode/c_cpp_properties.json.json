@@ -1,0 +1,19 @@
+{
+  "configurations": [
+    {
+      "name": "Win64 (MSYS2 MinGW)",
+      "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
+      "includePath": [
+        "${workspaceFolder}/include",
+        "C:/msys64/mingw64/include",
+        "${workspaceFolder}/**"
+      ],
+      "defines": [
+        "SDL_MAIN_HANDLED"
+      ],
+      "cStandard": "c17",
+      "intelliSenseMode": "windows-gcc-x64"
+    }
+  ],
+  "version": 4
+}

@@ -11,8 +11,14 @@
 #include "input.h"
 
 #define SCREEN_TITLE "Retro-MemoTest"
-#define SCREEN_WIDTH 800 //ancho
-#define SCREEN_HEIGHT 600 //alto
+#define SCREEN_WIDTH 1366 //ancho
+#define SCREEN_HEIGHT 768 //alto
+
+#define LOGO_W 400 
+#define LOGO_H 400
+
+#define BTN_W 436
+#define BTN_H 90
 
 #define IMG_FLAGS IMG_INIT_PNG
 

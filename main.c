@@ -5,6 +5,8 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 
+//#define SDL_MAIN_HANDLED
+
 #include "assets.h"
 #include "screen.h"
 #include "input.h"
