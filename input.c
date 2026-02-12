@@ -11,9 +11,9 @@ int pointInRect(int x, int y, SDL_Rect* r)
 bool handleEvents(tInput* input)
 {
     /*
-    s�lo modifica estados:
-        devuelve TRUE si contin�a la ejecuci�n del programa
-        devuelve FALSE si la ejecuci�n del programa se corta
+    solo modifica estados:
+        devuelve TRUE si continua la ejecucion del programa
+        devuelve FALSE si la ejecucion del programa se corta
     NO interpreta
     NO dibuja
     NO renderea

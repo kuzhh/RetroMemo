@@ -41,7 +41,7 @@ typedef struct{
     SDL_Rect logoRect;
 }tMainMenu;
 
-typedef enum {SCREEN_MAIN, SCREEN_GAME, SCREEN_CONFIG, SCREEN_EXIT} ScreenType;
+typedef enum {SCREEN_MAIN, SCREEN_CONFIG, SCREEN_GAME, SCREEN_GAMEOVER, SCREEN_EXIT} ScreenType;
 
 int screenInitialize(tScreen*, const char*, int, int);
 void screenShutdown(tScreen*);

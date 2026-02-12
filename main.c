@@ -12,8 +12,6 @@
 #define OK 0
 #define SDL_ERR 1
 
-#define IMG_FLAGS IMG_INIT_PNG
-
 int main(int argc, char* argv[])
 {
     tScreen screen = {
@@ -61,8 +59,6 @@ int main(int argc, char* argv[])
     while(running)
     {
         running = handleEvents(&input);
-
-        //uiUpdate();
 
         SDL_RenderClear(screen.renderer);
 

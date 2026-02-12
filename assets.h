@@ -15,6 +15,7 @@
 
 typedef enum {BTN_NORMAL, BTN_HOVER, BTN_PRESSED} BtnState;
 typedef enum {FONT_H1, FONT_H2, FONT_H3, FONT_COUNT} FontType;
+typedef enum {CSET_DS, CSET_GREEK} CardSetType;
 
 typedef struct
 {
@@ -34,11 +35,12 @@ typedef struct
 {
     SDL_Texture* cardFront[MAX_CARD_TYPES];
     SDL_Texture* cardBack;
-} tCardSet;
+}tCardSet;
 
 typedef struct
 {
-    //tCardSet cardSets[2];
+    tCardSet dsSet;
+    tCardSet greekSet;
 
     SDL_Texture* buttonNormal;
     SDL_Texture* buttonHover;
@@ -51,8 +53,12 @@ typedef struct
     TTF_Font* font;
 }tAssets;
 
+int cardsetLoad(tCardSet* cardSet, SDL_Renderer*, CardSetType type);
+void cardsetUnload(tCardSet* cardSet);
+
 int assetsLoad(tAssets* assets, SDL_Renderer*);
 void assetsUnload(tAssets* assets);
+
 void btnUpdate(tButton* btn, tInput* input);
 
 
