@@ -45,9 +45,21 @@ typedef struct{
     tLabel lblExit;
 
     SDL_Rect logoRect;
-}tMainMenu;
+} tMainMenu;
 
-typedef enum {SCREEN_MAIN, SCREEN_CONFIG, SCREEN_GAME, SCREEN_GAMEOVER, SCREEN_EXIT} ScreenType;
+typedef struct{
+    tButton btnInputName;
+    tButton btnBack;
+    tButton btnContinuar;
+
+    tLabel lblInputName;
+    tLabel lblBack;
+    tLabel lblContinuar;
+
+    SDL_Rect logoRect;
+} tSinglePlayerScreen;
+
+typedef enum {SCREEN_MAIN, SCREEN_CONFIG, SCREEN_SET_CARDS, SCREEN_GAME, SCREEN_GAMEOVER, SCREEN_EXIT} ScreenType;
 
 int screenInitialize(tScreen*, const char*, int, int);
 void screenShutdown(tScreen*);
@@ -58,6 +70,12 @@ int mainMenuInit(tMainMenu*, SDL_Renderer*, tAssets*);
 void mainMenuUpdate(tMainMenu*, tInput*, ScreenType*);
 void mainMenuRender(SDL_Renderer*, tMainMenu*, tAssets*);
 void mainMenuDestroy(tMainMenu*);
+
+int singlePlayerMenuInit(tSinglePlayerScreen*, SDL_Renderer*, tAssets*);
+void singlePlayerUpdate(tSinglePlayerScreen*, tInput*, ScreenType*);
+void singlePlayerRender(SDL_Renderer*, tSinglePlayerScreen*, tAssets*);
+void singlePlayerDestroy(tSinglePlayerScreen*);
+
 
 
 #endif // SCREEN_H_INCLUDED

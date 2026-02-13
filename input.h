@@ -11,6 +11,7 @@
 
 #define OK 0
 #define SDL_ERR 1
+#define MAX_TEXT_INPUT 50
 
 typedef struct
 {
@@ -19,6 +20,8 @@ typedef struct
     int mouseDown; //presionado ahora
     int mousePressed; //se presionó
     int mouseReleased; //se soltó
+    char textInput[MAX_TEXT_INPUT]; //buffer para input de texto
+    int textInputLen; //longitud del texto ingresado
 } tInput;
 
 bool handleEvents(tInput*);

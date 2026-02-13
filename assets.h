@@ -27,6 +27,7 @@ typedef enum {CSET_DS, CSET_GREEK} CardSetType;
 #define BUTTON_NORMAL "img/btn_normal.png"
 #define BUTTON_HOVER "img/btn_hover.png"
 #define BUTTON_PRESSED "img/btn_normal.png"
+#define BUTTON_BACK "img/back.png"
 #define SCORE_BOX "img/score_box.png"
 
 // Set 1 (Dark Souls)
@@ -54,6 +55,17 @@ typedef enum {CSET_DS, CSET_GREEK} CardSetType;
 #define SET_CARD_GR_8 "img/greek_card8.png"
 #define SET_CARD_GR_9 "img/greek_card9.png"
 #define SET_CARD_GR_10 "img/greek_card10.png"
+
+// Arrays de paths para cartas
+static const char* ds_card_paths[MAX_CARD_TYPES] = {
+    SET_CARD_DS_1, SET_CARD_DS_2, SET_CARD_DS_3, SET_CARD_DS_4, SET_CARD_DS_5,
+    SET_CARD_DS_6, SET_CARD_DS_7, SET_CARD_DS_8, SET_CARD_DS_9, SET_CARD_DS_10
+};
+
+static const char* greek_card_paths[MAX_CARD_TYPES] = {
+    SET_CARD_GR_1, SET_CARD_GR_2, SET_CARD_GR_3, SET_CARD_GR_4, SET_CARD_GR_5,
+    SET_CARD_GR_6, SET_CARD_GR_7, SET_CARD_GR_8, SET_CARD_GR_9, SET_CARD_GR_10
+};
 
 typedef struct
 {
@@ -87,6 +99,8 @@ typedef struct
     SDL_Texture* background;
 
     SDL_Texture* logo;
+
+    SDL_Texture* back;
 
     TTF_Font* font;
 }tAssets;

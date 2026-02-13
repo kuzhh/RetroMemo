@@ -1,4 +1,5 @@
 #include "input.h"
+#include <string.h>
 
 int pointInRect(int x, int y, SDL_Rect* r)
 {
@@ -23,6 +24,7 @@ bool handleEvents(tInput* input)
 
     input->mousePressed = 0;
     input->mouseReleased = 0;
+    memset(input->textInput, 0, MAX_TEXT_INPUT);
 
     while(SDL_PollEvent(&event))
     {
@@ -55,6 +57,21 @@ bool handleEvents(tInput* input)
         case SDL_KEYDOWN:
             if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
                 return false;
+            if(event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)
+            {
+                if(input->textInputLen > 0)
+                    input->textInputLen--;
+            }
+            break;
+
+        case SDL_TEXTINPUT:
+            if(input->textInputLen < MAX_TEXT_INPUT - 1)
+            {
+                for(int i = 0; event.text.text[i] && input->textInputLen < MAX_TEXT_INPUT - 1; i++)
+                {
+                    input->textInput[input->textInputLen++] = event.text.text[i];
+                }
+            }
             break;
 
             /* para dps :)

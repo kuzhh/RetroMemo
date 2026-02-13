@@ -45,17 +45,19 @@ int main(int argc, char* argv[])
     tMainMenu mainMenu;
     mainMenuInit(&mainMenu, screen.renderer, &assets);
 
+    tSinglePlayerScreen singlePlayer;
+    singlePlayerInit(&singlePlayer, screen.renderer, &assets);
+
     //pantalla a mostrar
     ScreenType currentScreen = SCREEN_MAIN;
     //Estado a modificar con eventos
     bool running = true;
 
     tInput input = {0};
+    input.textInputLen = 0;
 
     //OK
     printf("All good!\n");
-
-
 
     //Primary loop
     while(running)
@@ -68,15 +70,25 @@ int main(int argc, char* argv[])
         {
         case SCREEN_MAIN:
             mainMenuUpdate(&mainMenu, &input, &currentScreen);
-            mainMenuRender(screen.renderer,&mainMenu,&assets);
+            mainMenuRender(screen.renderer, &mainMenu, &assets);
+            break;
+        case SCREEN_CONFIG:
+            singlePlayerUpdate(&singlePlayer, &input, &currentScreen);
+            singlePlayerRender(screen.renderer, &singlePlayer, &assets);
+            break;
+        case SCREEN_SET_CARDS:
+            printf("DEBUG main: Estamos en SCREEN_SET_CARDS\n");
             break;
         case SCREEN_GAME:
+            printf("DEBUG main: Estamos en SCREEN_GAME\n");
             /*...*/
             break;
         case SCREEN_EXIT:
+            printf("DEBUG main: Cambiando a SCREEN_EXIT\n");
             running = false;
             break;
         default:
+            printf("DEBUG main: Screen desconocida: %d\n", currentScreen);
             break;
         }
 
@@ -87,6 +99,7 @@ int main(int argc, char* argv[])
 
     //destroys
     mainMenuDestroy(&mainMenu);
+    singlePlayerDestroy(&singlePlayer);
     assetsUnload(&assets);
     screenShutdown(&screen);
     printf("Screen closed.\nSee ya!");
