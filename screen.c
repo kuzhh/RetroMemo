@@ -487,7 +487,6 @@ void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* cur
         SDL_StopTextInput();
         input->textInput[0] = '\0';
         input->textInputLen = 0;
-
         *currentScreen = SCREEN_SET_CARDS;
     }
 }
@@ -577,4 +576,227 @@ void multiPlayerDestroy(tMultiplayerScreen* multi)
     if(multi->lblInputName1.texture) SDL_DestroyTexture(multi->lblInputName1.texture);
     if(multi->lblInputName2.texture) SDL_DestroyTexture(multi->lblInputName2.texture);
     if(multi->lblContinuar.texture) SDL_DestroyTexture(multi->lblContinuar.texture);
+}
+
+// =========================================================
+// SETCARD MENU
+// =========================================================
+
+int setCardMenuInit(tSetCardMenu* menu, SDL_Renderer* renderer, tAssets* assets)
+{
+    int centerX = SCREEN_WIDTH / 2;
+    int centerY = SCREEN_HEIGHT / 2;
+    int btnWidth = BTN_W;
+    int btnHeight = BTN_H;
+
+    // Logo
+    menu->logoRect = (SDL_Rect){centerX - (LOGO_W/2), 10, LOGO_W, LOGO_H};
+
+    // Botones
+    menu->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
+
+    menu->btn1S.rect = (SDL_Rect){centerX - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
+    menu->btn1S.state = BTN_NORMAL;
+
+    menu->btn2S = menu->btn1S;
+    menu->btn2S.rect.y += 90;
+
+    SDL_Color white = {255,255,255,255};
+
+    if(lblCreate(&menu->lbl1S, renderer, assets->font, "Medieval", white) != OK) return SDL_ERR;
+    menu->lbl1S.rect.x = menu->btn1S.rect.x + (menu->btn1S.rect.w - menu->lbl1S.rect.w)/2;
+    menu->lbl1S.rect.y = menu->btn1S.rect.y + (menu->btn1S.rect.h - menu->lbl1S.rect.h)/2;
+
+    if(lblCreate(&menu->lbl2S, renderer, assets->font, "Griego", white) != OK) return SDL_ERR;
+    menu->lbl2S.rect.x = menu->btn2S.rect.x + (menu->btn2S.rect.w - menu->lbl2S.rect.w)/2;
+    menu->lbl2S.rect.y = menu->btn2S.rect.y + (menu->btn2S.rect.h - menu->lbl2S.rect.h)/2;
+
+    return OK;
+}
+
+void setCardMenuUpdate(tSetCardMenu* menu, tInput* input, ScreenType* currentScreen, ScreenType PreviousScreen)
+{
+    btnUpdate(&menu->btn1S, input);
+    btnUpdate(&menu->btn2S, input);
+    btnUpdate(&menu->btnBack, input);
+
+    if(input->mouseReleased)
+    {
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btn1S.rect)) 
+        {
+            strcpy(menu->setCardChoosen, "Medieval");
+            *currentScreen = SCREEN_SET_DIFFICULT;
+            return;
+        }
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btn2S.rect)) 
+        {
+            strcpy(menu->setCardChoosen, "Griego");
+            *currentScreen = SCREEN_SET_DIFFICULT;
+            return;
+        }
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnBack.rect))
+            *currentScreen = PreviousScreen;
+    }
+}
+
+void setCardMenuRender(SDL_Renderer* renderer, tSetCardMenu* menu, tAssets* assets)
+{
+    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
+    SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
+    // Back button
+    SDL_RenderCopy(renderer, assets->back, NULL, &menu->btnBack.rect);
+
+    SDL_Texture* tex;
+
+    // 1S
+    switch(menu->btn1S.state) {
+        case BTN_NORMAL: tex = assets->buttonNormal; break;
+        case BTN_HOVER: tex = assets->buttonHover; break;
+        case BTN_PRESSED: tex = assets->buttonPressed; break;
+        default: tex = assets->buttonNormal; break;
+    }
+    SDL_RenderCopy(renderer, tex, NULL, &menu->btn1S.rect);
+
+    // 2S
+    switch(menu->btn2S.state) {
+        case BTN_NORMAL: tex = assets->buttonNormal; break;
+        case BTN_HOVER: tex = assets->buttonHover; break;
+        case BTN_PRESSED: tex = assets->buttonPressed; break;
+        default: tex = assets->buttonNormal; break;
+    }
+    SDL_RenderCopy(renderer, tex, NULL, &menu->btn2S.rect);
+
+    SDL_RenderCopy(renderer, menu->lbl1S.texture, NULL, &menu->lbl1S.rect);
+    SDL_RenderCopy(renderer, menu->lbl2S.texture, NULL, &menu->lbl2S.rect);
+}
+
+void setCardMenuDestroy(tSetCardMenu* menu)
+{
+    if(menu->lbl1S.texture) SDL_DestroyTexture(menu->lbl1S.texture);
+    if(menu->lbl2S.texture) SDL_DestroyTexture(menu->lbl2S.texture);
+}
+
+// =========================================================
+// DIFF MENU
+// =========================================================
+
+int setDiffMenuInit(tSetDiffMenu* menu, SDL_Renderer* renderer, tAssets* assets)
+{
+    int centerX = SCREEN_WIDTH / 2;
+    int centerY = SCREEN_HEIGHT / 2;
+    int btnWidth = BTN_W;
+    int btnHeight = BTN_H;
+
+    // Logo
+    menu->logoRect.w = LOGO_W;
+    menu->logoRect.h = LOGO_H;
+    menu->logoRect.x = centerX - (LOGO_W / 2);
+    menu->logoRect.y = 10;
+
+    // Botones
+    menu->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
+    menu->btnBack.state = BTN_NORMAL;
+
+    menu->btnLow.rect = (SDL_Rect){centerX - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
+    menu->btnLow.state = BTN_NORMAL;
+
+    menu->btnMid = menu->btnLow;
+    menu->btnMid.rect.y += 90;
+
+    menu->btnHigh = menu->btnLow;
+    menu->btnHigh.rect.y += 180;
+
+    SDL_Color white = {255,255,255,255};
+
+    if(lblCreate(&menu->lblLow, renderer, assets->font, "3x4", white) != OK) return SDL_ERR;
+    menu->lblLow.rect.x = menu->btnLow.rect.x + (menu->btnLow.rect.w - menu->lblLow.rect.w)/2;
+    menu->lblLow.rect.y = menu->btnLow.rect.y + (menu->btnLow.rect.h - menu->lblLow.rect.h)/2;
+
+    if(lblCreate(&menu->lblMid, renderer, assets->font, "4x4", white) != OK) return SDL_ERR;
+    menu->lblMid.rect.x = menu->btnMid.rect.x + (menu->btnMid.rect.w - menu->lblMid.rect.w)/2;
+    menu->lblMid.rect.y = menu->btnMid.rect.y + (menu->btnMid.rect.h - menu->lblMid.rect.h)/2;
+
+    if(lblCreate(&menu->lblHigh, renderer, assets->font, "4x5", white) != OK) return SDL_ERR;
+    menu->lblHigh.rect.x = menu->btnHigh.rect.x + (menu->btnHigh.rect.w - menu->lblHigh.rect.w)/2;
+    menu->lblHigh.rect.y = menu->btnHigh.rect.y + (menu->btnHigh.rect.h - menu->lblHigh.rect.h)/2;
+
+
+    return OK;
+}
+
+void setDiffMenuUpdate(tSetDiffMenu* menu, tInput* input, ScreenType* currentScreen)
+{
+    btnUpdate(&menu->btnLow, input);
+    btnUpdate(&menu->btnMid, input);
+    btnUpdate(&menu->btnHigh, input);
+    btnUpdate(&menu->btnBack, input);
+
+    if(input->mouseReleased)
+    {
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnLow.rect)) 
+        {
+            *currentScreen = SCREEN_GAME_LOW;
+            return;
+        }
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnMid.rect)) 
+        {
+            *currentScreen = SCREEN_GAME_MID;
+            return;
+        }
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnHigh.rect)) 
+        {
+            *currentScreen = SCREEN_GAME_HIGH;
+            return;
+        }
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnBack.rect)) *currentScreen = SCREEN_SET_CARDS;
+    }
+}
+
+void setDiffMenuRender(SDL_Renderer* renderer, tSetDiffMenu* menu, tAssets* assets)
+{
+    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
+    SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
+
+    SDL_Texture* tex;
+
+    // Low
+    switch(menu->btnLow.state) {
+        case BTN_NORMAL: tex = assets->buttonNormal; break;
+        case BTN_HOVER: tex = assets->buttonHover; break;
+        case BTN_PRESSED: tex = assets->buttonPressed; break;
+        default: tex = assets->buttonNormal; break;
+    }
+    SDL_RenderCopy(renderer, tex, NULL, &menu->btnLow.rect);
+
+    // Mid
+    switch(menu->btnMid.state) {
+        case BTN_NORMAL: tex = assets->buttonNormal; break;
+        case BTN_HOVER: tex = assets->buttonHover; break;
+        case BTN_PRESSED: tex = assets->buttonPressed; break;
+        default: tex = assets->buttonNormal; break;
+    }
+    SDL_RenderCopy(renderer, tex, NULL, &menu->btnMid.rect);
+
+    // High
+    switch(menu->btnHigh.state) {
+        case BTN_NORMAL: tex = assets->buttonNormal; break;
+        case BTN_HOVER: tex = assets->buttonHover; break;
+        case BTN_PRESSED: tex = assets->buttonPressed; break;
+        default: tex = assets->buttonNormal; break;
+    }
+    SDL_RenderCopy(renderer, tex, NULL, &menu->btnHigh.rect);
+
+    // Back button
+    SDL_RenderCopy(renderer, assets->back, NULL, &menu->btnBack.rect);
+
+    SDL_RenderCopy(renderer, menu->lblLow.texture, NULL, &menu->lblLow.rect);
+    SDL_RenderCopy(renderer, menu->lblMid.texture, NULL, &menu->lblMid.rect);
+    SDL_RenderCopy(renderer, menu->lblHigh.texture, NULL, &menu->lblHigh.rect);
+}
+
+void setDiffMenuDestroy(tSetDiffMenu* menu)
+{
+    if(menu->lblLow.texture) SDL_DestroyTexture(menu->lblLow.texture);
+    if(menu->lblMid.texture) SDL_DestroyTexture(menu->lblMid.texture);
+    if(menu->lblHigh.texture) SDL_DestroyTexture(menu->lblHigh.texture);
 }

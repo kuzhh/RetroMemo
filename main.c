@@ -52,8 +52,15 @@ int main(int argc, char* argv[])
     tMultiplayerScreen multiPlayer;
     multiPlayerInit(&multiPlayer, screen.renderer, &assets);
 
+    tSetCardMenu setCard;
+    setCardMenuInit(&setCard, screen.renderer, &assets);
+
+    tSetDiffMenu setDiff;
+    setDiffMenuInit(&setDiff, screen.renderer, &assets);
+
     //pantalla a mostrar
     ScreenType currentScreen = SCREEN_MAIN;
+    ScreenType previousScreen = SCREEN_MAIN;
     //Estado a modificar con eventos
     bool running = true;
 
@@ -74,6 +81,8 @@ int main(int argc, char* argv[])
 
         SDL_RenderClear(screen.renderer);
 
+        ScreenType lastScreenState = currentScreen;
+
         switch(currentScreen)
         {
         case SCREEN_MAIN:
@@ -89,12 +98,28 @@ int main(int argc, char* argv[])
             multiPlayerRender(screen.renderer, &multiPlayer, &assets, &input);
             break;
         case SCREEN_SET_CARDS:
-            printf("Nombre del usuario 1P: %s\n", player[0].namePlayer);
-            printf("Nombre del usuario 2P: %s\n", player[1].namePlayer);
+            setCardMenuUpdate(&setCard, &input, &currentScreen, previousScreen);
+            setCardMenuRender(screen.renderer, &setCard, &assets);
             break;
-        case SCREEN_GAME:
-            printf("DEBUG main: Estamos en SCREEN_GAME\n");
+        case SCREEN_SET_DIFFICULT:
+            setDiffMenuUpdate(&setDiff, &input, &currentScreen);
+            setDiffMenuRender(screen.renderer, &setDiff, &assets);
+            break;
+        case SCREEN_GAME_LOW:
+            printf("DEBUG main: Estamos en SCREEN_GAME_LOW\n");
             /*...*/
+            break;
+        case SCREEN_GAME_MID:
+            printf("DEBUG main: Estamos en SCREEN_GAME_MID\n");
+            /*...*/
+            break;
+        case SCREEN_GAME_HIGH:
+            printf("DEBUG main: Estamos en SCREEN_GAME_HIGH\n");
+            /*...*/
+            break;
+        case SCREEN_GAMEOVER:
+            printf("DEBUG main: Cambiando a SCREEN_GAMEOVER\n");
+            running = false;
             break;
         case SCREEN_EXIT:
             printf("DEBUG main: Cambiando a SCREEN_EXIT\n");
@@ -103,6 +128,11 @@ int main(int argc, char* argv[])
         default:
             printf("DEBUG main: Screen desconocida: %d\n", currentScreen);
             break;
+        }
+
+        if (currentScreen == SCREEN_SET_CARDS && lastScreenState != SCREEN_SET_CARDS) {
+            previousScreen = lastScreenState;
+            printf("DEBUG: Guardado previousScreen ID: %d\n", previousScreen);
         }
 
         SDL_RenderPresent(screen.renderer);
