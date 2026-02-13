@@ -10,6 +10,7 @@
 #include "assets.h"
 #include "screen.h"
 #include "input.h"
+#include "game.h"
 
 #define OK 0
 #define SDL_ERR 1
@@ -48,6 +49,9 @@ int main(int argc, char* argv[])
     tSinglePlayerScreen singlePlayer;
     singlePlayerInit(&singlePlayer, screen.renderer, &assets);
 
+    tMultiplayerScreen multiPlayer;
+    multiPlayerInit(&multiPlayer, screen.renderer, &assets);
+
     //pantalla a mostrar
     ScreenType currentScreen = SCREEN_MAIN;
     //Estado a modificar con eventos
@@ -55,6 +59,10 @@ int main(int argc, char* argv[])
 
     tInput input = {0};
     input.textInputLen = 0;
+    input.textActive = 0;
+
+    // Iniciar player
+    tPlayer player[2] = {{1, 0, 0, 0, "1P"},{2, 0, 0, 0,"1P"}};
 
     //OK
     printf("All good!\n");
@@ -72,12 +80,17 @@ int main(int argc, char* argv[])
             mainMenuUpdate(&mainMenu, &input, &currentScreen);
             mainMenuRender(screen.renderer, &mainMenu, &assets);
             break;
-        case SCREEN_CONFIG:
-            singlePlayerUpdate(&singlePlayer, &input, &currentScreen);
-            singlePlayerRender(screen.renderer, &singlePlayer, &assets);
+        case SCREEN_CONFIG_SINGLE:
+            singlePlayerUpdate(&singlePlayer, &input, &currentScreen, &player[0]);
+            singlePlayerRender(screen.renderer, &singlePlayer, &assets, &input);
+            break;
+        case SCREEN_CONFIG_MULTI:
+            multiPlayerUpdate(&multiPlayer, &input, &currentScreen, &player[0]);
+            multiPlayerRender(screen.renderer, &multiPlayer, &assets, &input);
             break;
         case SCREEN_SET_CARDS:
-            printf("DEBUG main: Estamos en SCREEN_SET_CARDS\n");
+            printf("Nombre del usuario 1P: %s\n", player[0].namePlayer);
+            printf("Nombre del usuario 2P: %s\n", player[1].namePlayer);
             break;
         case SCREEN_GAME:
             printf("DEBUG main: Estamos en SCREEN_GAME\n");

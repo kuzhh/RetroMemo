@@ -6,6 +6,8 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 
+#include "input.h"
+
 #define MAX_PLAYERS 2
 
 typedef enum {STATE_PLAYING, STATE_GAMEOVER} GameState;
@@ -16,6 +18,7 @@ typedef struct
     int pairsFound;
     int moves;
     int score;
+    char namePlayer[MAX_TEXT_INPUT];
 } tPlayer;
 
 typedef struct

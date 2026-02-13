@@ -1,6 +1,8 @@
 #ifndef BOARD_H_INCLUDED
 #define BOARD_H_INCLUDED
 
+#define SDL_MAIN_HANDLED
+
 typedef struct
 {
     SDL_Rect rect;
@@ -9,7 +11,7 @@ typedef struct
     int isFlipped;
     int isMatched;
     int id; //esto identifica los pares
-} tCard; //esto sería una unica tarjeta
+} tCard; //esto serï¿½a una unica tarjeta
 
 typedef struct
 {

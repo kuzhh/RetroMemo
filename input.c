@@ -11,20 +11,10 @@ int pointInRect(int x, int y, SDL_Rect* r)
 
 bool handleEvents(tInput* input)
 {
-    /*
-    solo modifica estados:
-        devuelve TRUE si continua la ejecucion del programa
-        devuelve FALSE si la ejecucion del programa se corta
-    NO interpreta
-    NO dibuja
-    NO renderea
-    */
-
     SDL_Event event;
 
     input->mousePressed = 0;
     input->mouseReleased = 0;
-    memset(input->textInput, 0, MAX_TEXT_INPUT);
 
     while(SDL_PollEvent(&event))
     {
@@ -57,36 +47,30 @@ bool handleEvents(tInput* input)
         case SDL_KEYDOWN:
             if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
                 return false;
+            
             if(event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)
             {
                 if(input->textInputLen > 0)
+                {
                     input->textInputLen--;
+                    input->textInput[input->textInputLen] = '\0';
+                }
             }
             break;
 
         case SDL_TEXTINPUT:
-            if(input->textInputLen < MAX_TEXT_INPUT - 1)
+            if(input->textActive && input->textInputLen < MAX_TEXT_INPUT - 1)
             {
                 for(int i = 0; event.text.text[i] && input->textInputLen < MAX_TEXT_INPUT - 1; i++)
-                {
                     input->textInput[input->textInputLen++] = event.text.text[i];
-                }
+                
+                // Asegurar null terminator siempre al final de escribir
+                input->textInput[input->textInputLen] = '\0'; 
             }
             break;
 
-            /* para dps :)
-            case SDL_MOUSEBUTTONDOWN:
-                if(event.button.button == SDL_BUTTON_LEFT)
-                {
-                    //click izq
-                }
-                if(event.button.button == SDL_BUTTON_RIGHT)
-                {
-                    //click der
-                }
-            */
-            default:
-                break;
+        default:
+            break;
         }
     }
 

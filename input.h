@@ -22,6 +22,7 @@ typedef struct
     int mouseReleased; //se soltó
     char textInput[MAX_TEXT_INPUT]; //buffer para input de texto
     int textInputLen; //longitud del texto ingresado
+    int textActive;
 } tInput;
 
 bool handleEvents(tInput*);

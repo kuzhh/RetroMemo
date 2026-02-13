@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "assets.h"
 #include "input.h"
+#include "game.h"
 
 #define SCREEN_TITLE "Retro-MemoTest"
 #define SCREEN_WIDTH 1366 //ancho
@@ -59,7 +60,27 @@ typedef struct{
     SDL_Rect logoRect;
 } tSinglePlayerScreen;
 
-typedef enum {SCREEN_MAIN, SCREEN_CONFIG, SCREEN_SET_CARDS, SCREEN_GAME, SCREEN_GAMEOVER, SCREEN_EXIT} ScreenType;
+typedef struct{
+    tButton btnInputName1;
+    tButton btnInputName2;
+    tButton btnBack;
+    tButton btnContinuar;
+
+    tLabel lblInputName1;
+    tLabel lblInputName2;
+    tLabel lblBack;
+    tLabel lblContinuar;
+
+    SDL_Rect logoRect;
+    char textInput1[MAX_TEXT_INPUT];
+    int textInputLen1;
+    int textActive1;
+    char textInput2[MAX_TEXT_INPUT];
+    int textInputLen2;
+    int textActive2;
+} tMultiplayerScreen;
+
+typedef enum {SCREEN_MAIN, SCREEN_CONFIG_SINGLE, SCREEN_CONFIG_MULTI, SCREEN_SET_CARDS, SCREEN_GAME, SCREEN_GAMEOVER, SCREEN_EXIT} ScreenType;
 
 int screenInitialize(tScreen*, const char*, int, int);
 void screenShutdown(tScreen*);
@@ -72,8 +93,13 @@ void mainMenuRender(SDL_Renderer*, tMainMenu*, tAssets*);
 void mainMenuDestroy(tMainMenu*);
 
 int singlePlayerInit(tSinglePlayerScreen*, SDL_Renderer*, tAssets*);
-void singlePlayerUpdate(tSinglePlayerScreen*, tInput*, ScreenType*);
-void singlePlayerRender(SDL_Renderer*, tSinglePlayerScreen*, tAssets*);
+void singlePlayerUpdate(tSinglePlayerScreen*, tInput*, ScreenType*, tPlayer*);
+void singlePlayerRender(SDL_Renderer*, tSinglePlayerScreen*, tAssets*, tInput*);
 void singlePlayerDestroy(tSinglePlayerScreen*);
+
+int multiPlayerInit(tMultiplayerScreen*, SDL_Renderer*, tAssets*);
+void multiPlayerUpdate(tMultiplayerScreen*, tInput*, ScreenType*, tPlayer*);
+void multiPlayerRender(SDL_Renderer*, tMultiplayerScreen*, tAssets*, tInput*);
+void multiPlayerDestroy(tMultiplayerScreen*);
 
 #endif // SCREEN_H_INCLUDED
