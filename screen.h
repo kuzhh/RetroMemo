@@ -71,11 +71,9 @@ void mainMenuUpdate(tMainMenu*, tInput*, ScreenType*);
 void mainMenuRender(SDL_Renderer*, tMainMenu*, tAssets*);
 void mainMenuDestroy(tMainMenu*);
 
-int singlePlayerMenuInit(tSinglePlayerScreen*, SDL_Renderer*, tAssets*);
+int singlePlayerInit(tSinglePlayerScreen*, SDL_Renderer*, tAssets*);
 void singlePlayerUpdate(tSinglePlayerScreen*, tInput*, ScreenType*);
 void singlePlayerRender(SDL_Renderer*, tSinglePlayerScreen*, tAssets*);
 void singlePlayerDestroy(tSinglePlayerScreen*);
-
-
 
 #endif // SCREEN_H_INCLUDED
