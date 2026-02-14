@@ -7,6 +7,7 @@
 #include <SDL2/SDL_mixer.h>
 
 #include "input.h"
+#include "sound.h"
 
 #define OK 0
 #define SDL_ERR 1
@@ -79,6 +80,7 @@ typedef struct
     SDL_Texture* hover;
     SDL_Texture* pressed;
     BtnState state;
+    tSound *melody;
 } tButton;
 
 typedef struct

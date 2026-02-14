@@ -95,6 +95,7 @@ int mainMenuInit(tMainMenu* menu, SDL_Renderer* renderer, tAssets* assets)
     SDL_Color white = {255,255,255,255};
 
     if(lblCreate(&menu->lblSP, renderer, assets->font, "Singleplayer", white) != OK) return SDL_ERR;
+
     menu->lblSP.rect.x = menu->btnSP.rect.x + (menu->btnSP.rect.w - menu->lblSP.rect.w)/2;
     menu->lblSP.rect.y = menu->btnSP.rect.y + (menu->btnSP.rect.h - menu->lblSP.rect.h)/2;
 
@@ -117,9 +118,19 @@ void mainMenuUpdate(tMainMenu* menu, tInput* input, ScreenType* currentScreen)
 
     if(input->mouseReleased)
     {
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnSP.rect)) *currentScreen = SCREEN_CONFIG_SINGLE;
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnMP.rect)) *currentScreen = SCREEN_CONFIG_MULTI;
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnExit.rect)) *currentScreen = SCREEN_EXIT;
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnSP.rect)){
+            *currentScreen = SCREEN_CONFIG_SINGLE;
+            sound_play(menu->btnSP.melody,0,-1);
+        }
+
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnMP.rect)) {
+                *currentScreen = SCREEN_CONFIG_MULTI;
+                sound_play(menu->btnMP.melody,0,-1);
+        }
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnExit.rect)){
+                *currentScreen = SCREEN_EXIT;
+                sound_play(menu->btnExit.melody,0,-1);
+        }
     }
 }
 
@@ -179,7 +190,7 @@ int singlePlayerInit(tSinglePlayerScreen* single, SDL_Renderer* renderer, tAsset
     int centerY = SCREEN_HEIGHT / 2;
 
     single->logoRect = (SDL_Rect){centerX - (LOGO_W/2), 10, LOGO_W, LOGO_H};
-    
+
     single->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
     single->btnBack.state = BTN_NORMAL;
 
@@ -241,7 +252,7 @@ void singlePlayerUpdate(tSinglePlayerScreen* single, tInput* input, ScreenType* 
     {
         if (input->textInputLen > 0) strncpy(player->namePlayer, input->textInput, MAX_TEXT_INPUT - 1);
         else strcpy(player->namePlayer, "Player 1");
-        
+
         player->namePlayer[MAX_TEXT_INPUT - 1] = '\0';
 
         input->textActive = 0;
@@ -283,9 +294,9 @@ void singlePlayerRender(SDL_Renderer* renderer, tSinglePlayerScreen* single, tAs
                     int tw, th;
                     SDL_QueryTexture(txtTex, NULL, NULL, &tw, &th);
                     SDL_Rect dst = single->btnInputName.rect;
-                    dst.x += 50; 
+                    dst.x += 50;
                     dst.y += (dst.h - th) / 2;
-                    dst.w = tw; 
+                    dst.w = tw;
                     dst.h = th;
 
                     if(strlen(txtBuf)>0) SDL_RenderCopy(renderer, txtTex, NULL, &dst);
@@ -321,7 +332,7 @@ void singlePlayerDestroy(tSinglePlayerScreen* single)
 }
 
 // =========================================================
-// MULTIPLAYER SCREEN 
+// MULTIPLAYER SCREEN
 // =========================================================
 
 int multiPlayerInit(tMultiplayerScreen* multi, SDL_Renderer* renderer, tAssets* assets)
@@ -393,7 +404,7 @@ void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* cur
         // 1. Click en Input 1
         if(pointInRect(input->mouseX, input->mouseY, &multi->btnInputName1.rect))
         {
-            if(!multi->textActive1) 
+            if(!multi->textActive1)
             {
                 // Si venimos del 2, guardamos su estado
                 if (multi->textActive2) {
@@ -408,7 +419,7 @@ void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* cur
                 // Cargamos el texto del 1 al Input Global
                 strncpy(input->textInput, multi->textInput1, MAX_TEXT_INPUT - 1);
                 input->textInput[MAX_TEXT_INPUT - 1] = '\0';
-                
+
                 // CORRECCION: Recalcular longitud real para que el backspace sepa dónde está
                 input->textInputLen = (int)strlen(input->textInput);
 
@@ -418,7 +429,7 @@ void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* cur
         // 2. Click en Input 2
         else if(pointInRect(input->mouseX, input->mouseY, &multi->btnInputName2.rect))
         {
-            if(!multi->textActive2) 
+            if(!multi->textActive2)
             {
                 // Si venimos del 1, guardamos su estado
                 if (multi->textActive1) {
@@ -461,7 +472,7 @@ void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* cur
     {
         strncpy(multi->textInput1, input->textInput, MAX_TEXT_INPUT - 1);
         multi->textInput1[MAX_TEXT_INPUT - 1] = '\0';
-        multi->textInputLen1 = input->textInputLen; 
+        multi->textInputLen1 = input->textInputLen;
     }
     else if(multi->textActive2)
     {
@@ -503,10 +514,10 @@ void multiPlayerRender(SDL_Renderer* renderer, tMultiplayerScreen* multi, tAsset
     // --- INPUT 1 ---
     SDL_RenderCopy(renderer, assets->buttonNormal, NULL, &multi->btnInputName1.rect);
     SDL_RenderCopy(renderer, multi->lblInputName1.texture, NULL, &multi->lblInputName1.rect);
-    
+
     // Usamos la variable local o global según corresponda
     const char* txt1 = multi->textActive1 ? input->textInput : multi->textInput1;
-    
+
     if(strlen(txt1) > 0 || multi->textActive1)
     {
         SDL_Surface* surf = TTF_RenderText_Blended(assets->font, (strlen(txt1)>0)?txt1:" ", txtColor);
@@ -517,9 +528,9 @@ void multiPlayerRender(SDL_Renderer* renderer, tMultiplayerScreen* multi, tAsset
                 SDL_QueryTexture(txtTex, NULL, NULL, &tw, &th);
                 SDL_Rect dst = multi->btnInputName1.rect;
                 dst.x += 50; dst.y += (dst.h - th)/2; dst.w = tw; dst.h = th;
-                
+
                 if(strlen(txt1)>0) SDL_RenderCopy(renderer, txtTex, NULL, &dst);
-                
+
                 if(multi->textActive1) {
                     int cx = dst.x + (strlen(txt1)>0 ? dst.w : 0) + 2;
                     SDL_SetRenderDrawColor(renderer, 255,255,255,255);
@@ -622,13 +633,13 @@ void setCardMenuUpdate(tSetCardMenu* menu, tInput* input, ScreenType* currentScr
 
     if(input->mouseReleased)
     {
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btn1S.rect)) 
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btn1S.rect))
         {
             strcpy(menu->setCardChoosen, "Medieval");
             *currentScreen = SCREEN_SET_DIFFICULT;
             return;
         }
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btn2S.rect)) 
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btn2S.rect))
         {
             strcpy(menu->setCardChoosen, "Griego");
             *currentScreen = SCREEN_SET_DIFFICULT;
@@ -733,17 +744,17 @@ void setDiffMenuUpdate(tSetDiffMenu* menu, tInput* input, ScreenType* currentScr
 
     if(input->mouseReleased)
     {
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnLow.rect)) 
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnLow.rect))
         {
             *currentScreen = SCREEN_GAME_LOW;
             return;
         }
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnMid.rect)) 
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnMid.rect))
         {
             *currentScreen = SCREEN_GAME_MID;
             return;
         }
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnHigh.rect)) 
+        if(pointInRect(input->mouseX, input->mouseY, &menu->btnHigh.rect))
         {
             *currentScreen = SCREEN_GAME_HIGH;
             return;

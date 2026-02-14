@@ -7,6 +7,7 @@
 #include <SDL2/SDL_mixer.h>
 
 #include <stdio.h>
+#include "sound.h"
 #include "assets.h"
 #include "input.h"
 #include "game.h"
@@ -15,7 +16,7 @@
 #define SCREEN_WIDTH 1366 //ancho
 #define SCREEN_HEIGHT 768 //alto
 
-#define LOGO_W 400 
+#define LOGO_W 400
 #define LOGO_H 400
 
 #define BTN_W 436
@@ -46,6 +47,8 @@ typedef struct{
     tLabel lblExit;
 
     SDL_Rect logoRect;
+
+    tSound *melody;
 } tMainMenu;
 
 typedef struct{
