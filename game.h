@@ -6,7 +6,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h> */
 
-#include <stdint.h> //agregue
+#include <stdint.h> //esto lo agregue yo
 #include "input.h"
 
 #define MAX_PLAYERS 2
@@ -15,7 +15,7 @@
 //agregado
 #define BOARD_ROWS 4
 #define BOARD_COLS 4
-#define MAX_CARDS (BOARD_ROWS * BOARD_COLS) //que el max. de cards sea por tablero
+#define MAX_CARDS 20//que el max. de cards sea por tablero
 
 typedef struct {
     int id;        // 0..totalpares-1
@@ -51,7 +51,7 @@ typedef struct
     int penalty;
 } tScoreRules;
 
-typedef struct //mejor lo dejo al final viendo que va a usar
+typedef struct //lo dejo al final para ver que usar
 {
     GameState state;
     int isRunning;
@@ -60,13 +60,20 @@ typedef struct //mejor lo dejo al final viendo que va a usar
     int playerCount;
     int currentPlayer;
 
-    int totalPairs;
+    int rows, cols;
+    int cardCount;     // rows*cols
+    int totalPairs;    // cardCount/2
+
     Uint32 startTime;
     Uint32 turnStartTime;
 
-    tCard cards[MAX_CARDS];//agrego la cond. del mx cards
+    tCard cards[MAX_CARDS];
     tSelection selection;
 
 } tGame;
+
+void game_init(tGame* g);// una vez
+void game_start(tGame* g, int r, int c);// cada partida
+
 
 #endif // GAME_H_INCLUDED
