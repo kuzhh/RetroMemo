@@ -1,4 +1,5 @@
 #include "screen.h"
+#include "board.h"
 #include <string.h>
 
 // =========================================================
@@ -810,4 +811,124 @@ void setDiffMenuDestroy(tSetDiffMenu* menu)
     if(menu->lblLow.texture) SDL_DestroyTexture(menu->lblLow.texture);
     if(menu->lblMid.texture) SDL_DestroyTexture(menu->lblMid.texture);
     if(menu->lblHigh.texture) SDL_DestroyTexture(menu->lblHigh.texture);
+}
+
+// =========================================================
+// GAME IN COURSE -- SP PLAYING
+// =========================================================
+
+int playSPInit(tPlaySPScreen* SP, SDL_Renderer* renderer, tAssets* assets, tPlayer* player, tBoard* board, tSetCardMenu* setCardMenu)
+{
+    SP->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
+    SP->btnBack.state = BTN_NORMAL;
+
+    SDL_Color white = {255,255,255,255};
+    if(lblCreate(&SP->lblPlayerName, renderer, assets->font, player[0].namePlayer, white) != OK)
+        return SDL_ERR;
+
+    SP->lblPlayerName.rect.x = SCREEN_WIDTH - 150;
+    SP->lblPlayerName.rect.y = 0;
+
+    char bufferScore[32];
+    snprintf(bufferScore, sizeof(bufferScore), "%d", player[0].score);
+
+    if(lblCreate(&SP->lblPlayerScore, renderer, assets->font, bufferScore, white) != OK)
+        return SDL_ERR;
+
+    SP->lblPlayerScore.rect.x = SCREEN_WIDTH - 150;
+    SP->lblPlayerScore.rect.y = 90; 
+
+    SP->selection.firstSelected = -1;
+    SP->selection.secondSelected = -1;
+    SP->selection.waiting = 0;
+    SP->selection.waitStart = 0;
+
+    if(strcmp(setCardMenu->setCardChoosen, "Medieval") == 0)
+        SP->activeSet = &assets->dsSet;
+    else
+        SP->activeSet = &assets->greekSet;
+
+    return OK;
+}
+
+void playSPUpdate(tPlaySPScreen* SP, tGame* game, tBoard* board, tInput* input)
+{
+    Uint32 currentTime = SDL_GetTicks();
+
+    if(SP->selection.waiting)
+    {
+        if(currentTime - SP->selection.waitStart > 800)
+        {
+            tCard* c1 = &board->cards[SP->selection.firstSelected];
+            tCard* c2 = &board->cards[SP->selection.secondSelected];
+
+            c1->isFlipped = 0;
+            c2->isFlipped = 0;
+
+            SP->selection.firstSelected = -1;
+            SP->selection.secondSelected = -1;
+            SP->selection.waiting = 0;
+        }
+
+        return;
+    }
+
+    if(!input->mousePressed)
+        return;
+
+    printf("Click detectado\n");
+
+    int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
+    if(clicked == -1)
+        return;
+    
+    tCard* card = &board->cards[clicked];
+
+    if(card->isFlipped || card->isMatched)
+        return;
+
+    card->isFlipped = 1;
+
+    if(SP->selection.firstSelected == -1)
+    {
+        SP->selection.firstSelected = clicked;
+    }
+    else if (SP->selection.secondSelected == -1)
+    {
+        if(clicked == SP->selection.firstSelected)
+            return;
+
+        SP->selection.secondSelected = clicked;
+
+        tCard* c1 = &board->cards[SP->selection.firstSelected];
+        tCard* c2 = &board->cards[SP->selection.secondSelected];
+
+        if(c1->id == c2->id)
+        {
+            c1->isMatched = 1;
+            c2->isMatched = 1;
+
+            game->players[0].score++;
+
+            SP->selection.firstSelected = -1;
+            SP->selection.secondSelected = -1;
+        }
+        else
+        {
+            SP->selection.waiting = 1;
+            SP->selection.waitStart = currentTime;
+        }
+    }
+    
+}
+
+void playSPRender(SDL_Renderer* renderer, tPlaySPScreen* SP, tAssets* assets, tBoard* board)
+{
+    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
+    SDL_RenderCopy(renderer, assets->back, NULL, &SP->btnBack.rect);
+
+    SDL_RenderCopy(renderer, SP->lblPlayerName.texture, NULL, &SP->lblPlayerName.rect);
+    SDL_RenderCopy(renderer, SP->lblPlayerScore.texture, NULL, &SP->lblPlayerScore.rect);
+
+    boardRender(renderer, board, SP->activeSet);
 }

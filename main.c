@@ -43,6 +43,17 @@ int main(int argc, char* argv[])
         return SDL_ERR;
     }
 
+    tInput input = {0};
+    input.textInputLen = 0;
+    input.textActive = 0;
+
+    // Iniciar player
+    tPlayer player[2] = {{1, 0, 0, 0, "1P"},{2, 0, 0, 0,"1P"}};
+    
+    //Declarar board
+    tBoard board = {0};
+    tGame game;
+
     tMainMenu mainMenu;
     mainMenuInit(&mainMenu, screen.renderer, &assets);
 
@@ -58,18 +69,16 @@ int main(int argc, char* argv[])
     tSetDiffMenu setDiff;
     setDiffMenuInit(&setDiff, screen.renderer, &assets);
 
+    tPlaySPScreen playSP;
+    playSPInit(&playSP, screen.renderer, &assets, player, &board, &setCard);
+
     //pantalla a mostrar
     ScreenType currentScreen = SCREEN_MAIN;
     ScreenType previousScreen = SCREEN_MAIN;
     //Estado a modificar con eventos
     bool running = true;
 
-    tInput input = {0};
-    input.textInputLen = 0;
-    input.textActive = 0;
-
-    // Iniciar player
-    tPlayer player[2] = {{1, 0, 0, 0, "1P"},{2, 0, 0, 0,"1P"}};
+    
 
     //Inicio mixer
     tFormatsSnd formatsSnd = sound_start();
@@ -100,6 +109,36 @@ int main(int argc, char* argv[])
 
         ScreenType lastScreenState = currentScreen;
 
+        //chequeo de pantallas para no iniciar la screen cada frame
+        if(currentScreen != previousScreen)
+        {
+            if(currentScreen == SCREEN_GAME_LOW)
+            {
+                boardDestroy(&board);
+                boardInit(&board, LOW_ROWS, LOW_COLS);
+                gameInit(&game, &board, 1); //un único jugador -- cambiar
+                playSPInit(&playSP, screen.renderer, &assets, player, &board, &setCard);
+            }
+
+            if(currentScreen == SCREEN_GAME_MID)
+            {
+                boardDestroy(&board);
+                boardInit(&board, MID_ROWS, MID_COLS);
+                gameInit(&game, &board, 1); //un único jugador -- cambiar
+                playSPInit(&playSP, screen.renderer, &assets, player, &board, &setCard);
+            }
+
+            if(currentScreen == SCREEN_GAME_HIGH)
+            {
+                boardDestroy(&board);
+                boardInit(&board, HIGH_ROWS, HIGH_COLS);
+                gameInit(&game, &board, 1); //un único jugador -- cambiar
+                playSPInit(&playSP, screen.renderer, &assets, player, &board, &setCard);
+            }
+
+            previousScreen = currentScreen;
+        }
+
         switch(currentScreen)
         {
         case SCREEN_MAIN:
@@ -124,15 +163,18 @@ int main(int argc, char* argv[])
             break;
         case SCREEN_GAME_LOW:
             printf("DEBUG main: Estamos en SCREEN_GAME_LOW\n");
-            /*...*/
+            playSPUpdate(&playSP, &game, &board, &input);
+            playSPRender(screen.renderer, &playSP, &assets, &board);
             break;
         case SCREEN_GAME_MID:
             printf("DEBUG main: Estamos en SCREEN_GAME_MID\n");
-            /*...*/
+            playSPUpdate(&playSP, &game, &board, &input);
+            playSPRender(screen.renderer, &playSP, &assets, &board);
             break;
         case SCREEN_GAME_HIGH:
             printf("DEBUG main: Estamos en SCREEN_GAME_HIGH\n");
-            /*...*/
+            playSPUpdate(&playSP, &game, &board, &input);
+            playSPRender(screen.renderer, &playSP, &assets, &board);
             break;
         case SCREEN_GAMEOVER:
             printf("DEBUG main: Cambiando a SCREEN_GAMEOVER\n");
@@ -158,6 +200,7 @@ int main(int argc, char* argv[])
     }
 
     //destroys
+    boardDestroy(&board);
     sound_destroy(mainMenu.melody);//destroy melodia
     mainMenuDestroy(&mainMenu);
     singlePlayerDestroy(&singlePlayer);

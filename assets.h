@@ -15,7 +15,7 @@
 #define MAX_CARD_TYPES 10
 
 typedef enum {BTN_NORMAL, BTN_HOVER, BTN_PRESSED} BtnState;
-typedef enum {FONT_H1, FONT_H2, FONT_H3, FONT_COUNT} FontType;
+//typedef enum {FONT_H1, FONT_H2, FONT_H3, FONT_COUNT} FontType;
 typedef enum {CSET_DS, CSET_GREEK} CardSetType;
 
 // --- DEFINES DE ASSETS ---
@@ -68,10 +68,10 @@ static const char* greek_card_paths[MAX_CARD_TYPES] = {
     SET_CARD_GR_6, SET_CARD_GR_7, SET_CARD_GR_8, SET_CARD_GR_9, SET_CARD_GR_10
 };
 
-typedef struct
+/*typedef struct
 {
     TTF_Font* fonts[FONT_COUNT];
-} tFonts;
+} tFonts;*/
 
 typedef struct
 {

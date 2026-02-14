@@ -109,6 +109,17 @@ typedef struct{
     int textActive2;
 } tMultiplayerScreen;
 
+typedef struct{
+    tButton btnBack;
+
+    tLabel lblPlayerName;
+    tLabel lblPlayerScore;
+    tLabel lblBack;
+
+    tSelection selection;
+    tCardSet* activeSet;
+}tPlaySPScreen;
+
 typedef enum {
     SCREEN_MAIN,
     SCREEN_CONFIG_SINGLE,
@@ -124,7 +135,6 @@ typedef enum {
 
 int screenInitialize(tScreen*, const char*, int, int);
 void screenShutdown(tScreen*);
-
 int lblCreate(tLabel*, SDL_Renderer*, TTF_Font*, const char*, SDL_Color);
 
 int mainMenuInit(tMainMenu*, SDL_Renderer*, tAssets*);
@@ -151,5 +161,10 @@ int setDiffMenuInit(tSetDiffMenu*, SDL_Renderer*, tAssets*);
 void setDiffMenuUpdate(tSetDiffMenu*, tInput*, ScreenType*);
 void setDiffMenuRender(SDL_Renderer*, tSetDiffMenu*, tAssets*);
 void setDiffMenuDestroy(tSetDiffMenu*);
+
+int playSPInit(tPlaySPScreen*, SDL_Renderer*, tAssets*, tPlayer*, tBoard*, tSetCardMenu*);
+void playSPUpdate(tPlaySPScreen*, tGame*, tBoard*, tInput*);
+void playSPRender(SDL_Renderer*, tPlaySPScreen*, tAssets*, tBoard*);
+//void playSPDestroy(void);
 
 #endif // SCREEN_H_INCLUDED
