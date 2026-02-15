@@ -1,17 +1,20 @@
 #include "game.h"
+#include "scoreboard.h"
+
+#define SCORE_FILE "scores.txt"
 
 #define ERR -1
 
 /*
 #include "input.h"
 #include "assets.h"
-#include "screen.h"      
-#include <string.h>     
-#include <stdlib.h>      
+#include "screen.h"
+#include <string.h>
+#include <stdlib.h>
 #include <time.h> // biblios que podriamos agregar, por las dudas lo dejo asi */
 
 
-/*FUNCION PARA MEZCLAR CARTAS (capaz sirve) 
+/*FUNCION PARA MEZCLAR CARTAS (capaz sirve)
 static void mezclar(int* a, int n)
 {
     for(int i = 0; i < n - 1; i++)// recorro
@@ -25,6 +28,12 @@ static void mezclar(int* a, int n)
 }
 */
 
+/*  Inicializa el juego:
+    -setea estado inicial
+    -setea cantidad de jugadores y turno inicial
+    -inicializa contadores y puntajes (IMPORTANTE: también pairsFound y moves)
+    -calcula totalPairs a partir del board
+*/
 int gameInit(tGame* game, tBoard* board, int playerCount)
 {
     int i;
@@ -44,9 +53,111 @@ int gameInit(tGame* game, tBoard* board, int playerCount)
     for(i = 0; i < playerCount; i++)
     {
         game->players[i].score = 0;
+        game->players[i].pairsFound = 0; // evito basura ADD
+        game->players[i].moves = 0;      // idem ADD
     }
 
     game->totalPairs = board->totalCards / 2;
 
     return OK;
 }
+
+/*  Se llama cuando el board ya resolvió un intento.
+    informa si hubo match o no.
+
+    Reglas actuales (modo simple):
+    - Gana el que MÁS PARES encontró.
+    - Match:
+        * incrementa pairsFound del jugador actual
+        * score = pairsFound (o sea, score representa cantidad de pares)
+        * el jugador sigue (no cambia currentPlayer)
+    - No match:
+        * no suma pares / no cambia score
+        * si hay 2 jugadores, cambia turno (0 <-> 1)
+*/
+void gameOnPairResolved(tGame* game, int isMatch)
+{
+    if(!game || game->playerCount <= 0)
+        return;
+
+    // (Opcional) si estamos contando movimientos, incrementar
+    // cada vez que se resuelve una jugada (2 cartas)
+    game->players[game->currentPlayer].moves++;
+
+    if(isMatch)
+    {
+        game->players[game->currentPlayer].pairsFound++;
+
+        /* score representa cantidad de pares encontrados.
+           Si después quieren “10 puntos por par”, se cambia acá
+           score = pairsFound * 10;
+        */
+        game->players[game->currentPlayer].score =
+            game->players[game->currentPlayer].pairsFound;
+
+        // El jugador sigue jugando
+    }
+    else
+    {
+        // Cambia turno solo si son 2 jugadores
+        if(game->playerCount == 2)
+            game->currentPlayer = 1 - game->currentPlayer;
+    }
+
+    /* La lógica de ganador NO va acá.
+       El ganador se calcula cuando termina el juego (cuando ya están todos los pares).
+       Eso lo vamos a hacer en la pantalla WINNER o en una función aparte. */
+}
+
+/*  Determina el ganador al final (modo 2 jugadores)
+    -devuelve 0 si gana player 0
+    -devuelve 1 si gana player 1
+    -devuelve -1 si hay empate
+    -si hay 1 jugador, devuelve 0 (es el único)
+*/
+int gameGetWinnerIndex(const tGame* game)
+{
+    if(!game || game->playerCount <= 0)
+        return -1;
+
+    if(game->playerCount == 1)
+        return 0;
+
+    // 2 jugadores
+    int p0 = game->players[0].pairsFound;
+    int p1 = game->players[1].pairsFound;
+
+    if(p0 > p1) return 0;
+    if(p1 > p0) return 1;
+    return -1; // empate
+}
+
+/*  Guarda los puntajes actuales en el archivo SCORE_FILE (ranking Top 5):
+    -carga lo que ya existe en el archivo
+    -inserta los jugadores actuales (1 o 2) <<<manteniendo Top 5>>>>
+    -guarda el ranking actualizado
+*/
+int gameCommitScoresToFile(const tGame* game)//guardar score
+{
+    if(!game) return 0;
+
+    tScoreEntry entries[SCORE_MAX_ENTRIES];
+    int count = 0;
+
+    if(!scoreboardLoad(SCORE_FILE, entries, &count))
+        return 0;
+
+    for(int i = 0; i < game->playerCount; i++)
+    {
+        scoreboardInsertTop5(entries, &count,
+                             game->players[i].namePlayer,
+                             game->players[i].score);
+    }
+
+    if(!scoreboardSave(SCORE_FILE, entries, count))
+        return 0;
+
+    return 1;
+}
+
+
