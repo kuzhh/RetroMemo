@@ -11,6 +11,7 @@
 #include <SDL2/SDL_mixer.h>
 
 #include "assets.h"
+#include "sound.h"
 
 #define SCREEN_WIDTH 1366 //ancho
 #define SCREEN_HEIGHT 768 //alto
@@ -40,6 +41,8 @@ typedef struct
     int isFlipped;
     int isMatched;
     int id; //esto identifica los pares
+    tSound *sound_Matched;//sonido correcto
+    tSound *sound_Not_Matched;//sonido fallo
 } tCard; //esto ser�a una unica tarjeta
 
 typedef struct

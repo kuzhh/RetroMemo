@@ -2,6 +2,9 @@
 #include "board.h"
 #include <string.h>
 
+#define CLICK "snd/Click.wav"
+#define MUSIC "snd/doom.mp3"
+
 // =========================================================
 // FUNCIONES AUXILIARES
 // =========================================================
@@ -108,6 +111,17 @@ int mainMenuInit(tMainMenu* menu, SDL_Renderer* renderer, tAssets* assets)
     menu->lblExit.rect.x = menu->btnExit.rect.x + (menu->btnExit.rect.w - menu->lblExit.rect.w)/2;
     menu->lblExit.rect.y = menu->btnExit.rect.y + (menu->btnExit.rect.h - menu->lblExit.rect.h)/2;
 
+    //carga sonido
+    menu->melody = sound_load(MUSIC);//cargo melodia pincipal.
+    menu->btnSP.melody = sound_load(CLICK);
+    menu->btnMP.melody = sound_load(CLICK);
+    menu->btnExit.melody = sound_load(CLICK);
+    if(!menu->btnSP.melody || !menu->btnMP.melody || !menu->btnExit.melody || !menu->melody)
+    {
+        fprintf(stderr,"No se pudo cargar el sonido.");
+        sound_finish();
+    }
+
     return OK;
 }
 
@@ -121,16 +135,16 @@ void mainMenuUpdate(tMainMenu* menu, tInput* input, ScreenType* currentScreen)
     {
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnSP.rect)){
             *currentScreen = SCREEN_CONFIG_SINGLE;
-            sound_play(menu->btnSP.melody,0,-1);
+            sound_play(menu->btnSP.melody,0);//reproduce sonido
         }
 
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnMP.rect)) {
-                *currentScreen = SCREEN_CONFIG_MULTI;
-                sound_play(menu->btnMP.melody,0,-1);
+            *currentScreen = SCREEN_CONFIG_MULTI;
+            sound_play(menu->btnMP.melody,0);//reproduce sonido
         }
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnExit.rect)){
-                *currentScreen = SCREEN_EXIT;
-                sound_play(menu->btnExit.melody,0,-1);
+            *currentScreen = SCREEN_EXIT;
+            sound_play(menu->btnExit.melody,0);//reproduce sonido
         }
     }
 }
@@ -179,6 +193,12 @@ void mainMenuDestroy(tMainMenu* menu)
     if(menu->lblSP.texture) SDL_DestroyTexture(menu->lblSP.texture);
     if(menu->lblMP.texture) SDL_DestroyTexture(menu->lblMP.texture);
     if(menu->lblExit.texture) SDL_DestroyTexture(menu->lblExit.texture);
+
+    //destroy melodia menu
+    sound_destroy(menu->melody);
+    sound_destroy(menu->btnSP.melody);
+    sound_destroy(menu->btnMP.melody);
+    sound_destroy(menu->btnExit.melody);
 }
 
 // =========================================================
@@ -211,6 +231,15 @@ int singlePlayerInit(tSinglePlayerScreen* single, SDL_Renderer* renderer, tAsset
     single->lblContinuar.rect.x = single->btnContinuar.rect.x + (single->btnContinuar.rect.w - single->lblContinuar.rect.w) / 2;
     single->lblContinuar.rect.y = single->btnContinuar.rect.y + (single->btnContinuar.rect.h - single->lblContinuar.rect.h) / 2;
 
+    //carga los sonidos.
+    single->btnBack.melody = sound_load(CLICK);
+    single->btnContinuar.melody = sound_load(CLICK);
+    if(!single->btnBack.melody || !single->btnContinuar.melody)
+    {
+        fprintf(stderr,"No se pudo cargar el sonido.");
+        sound_finish();
+    }
+
     return OK;
 }
 
@@ -226,6 +255,10 @@ void singlePlayerUpdate(tSinglePlayerScreen* single, tInput* input, ScreenType* 
         input->textInput[0] = '\0';
         input->textInputLen = 0;
         *currentScreen = SCREEN_MAIN;
+
+        //reproduce sonido
+        sound_play(single->btnBack.melody,0);
+
         return;
     }
 
@@ -261,6 +294,9 @@ void singlePlayerUpdate(tSinglePlayerScreen* single, tInput* input, ScreenType* 
         input->textInput[0] = '\0';
         input->textInputLen = 0;
         *currentScreen = SCREEN_SET_CARDS;
+
+        //repruduce sonido
+        sound_play(single->btnContinuar.melody,0);
     }
 }
 
@@ -330,6 +366,9 @@ void singlePlayerDestroy(tSinglePlayerScreen* single)
 {
     if(single->lblInputName.texture) SDL_DestroyTexture(single->lblInputName.texture);
     if(single->lblContinuar.texture) SDL_DestroyTexture(single->lblContinuar.texture);
+    //destroy sonido singlePlayer
+    sound_destroy(single->btnBack.melody);
+    sound_destroy(single->btnContinuar.melody);
 }
 
 // =========================================================
@@ -380,6 +419,15 @@ int multiPlayerInit(tMultiplayerScreen* multi, SDL_Renderer* renderer, tAssets* 
     multi->textActive1 = 0;
     multi->textActive2 = 0;
 
+    //carga sonidos
+    multi->btnBack.melody = sound_load(CLICK);
+    multi->btnContinuar.melody = sound_load(CLICK);
+    if(!multi->btnBack.melody || !multi->btnContinuar.melody)
+    {
+        fprintf(stderr,"No se pudo cargar el sonido.");
+        sound_finish();
+    }
+
     return OK;
 }
 
@@ -396,6 +444,9 @@ void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* cur
         input->textInput[0] = '\0';
         input->textInputLen = 0;
         *currentScreen = SCREEN_MAIN;
+
+        //repruduce sonido
+        sound_play(multi->btnBack.melody,0);
         return;
     }
 
@@ -500,6 +551,9 @@ void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* cur
         input->textInput[0] = '\0';
         input->textInputLen = 0;
         *currentScreen = SCREEN_SET_CARDS;
+
+        //Reproduce sonido
+        sound_play(multi->btnContinuar.melody,0);
     }
 }
 
@@ -588,6 +642,9 @@ void multiPlayerDestroy(tMultiplayerScreen* multi)
     if(multi->lblInputName1.texture) SDL_DestroyTexture(multi->lblInputName1.texture);
     if(multi->lblInputName2.texture) SDL_DestroyTexture(multi->lblInputName2.texture);
     if(multi->lblContinuar.texture) SDL_DestroyTexture(multi->lblContinuar.texture);
+    //destroy music
+    sound_destroy(multi->btnBack.melody);
+    sound_destroy(multi->btnContinuar.melody);
 }
 
 // =========================================================
@@ -623,6 +680,16 @@ int setCardMenuInit(tSetCardMenu* menu, SDL_Renderer* renderer, tAssets* assets)
     menu->lbl2S.rect.x = menu->btn2S.rect.x + (menu->btn2S.rect.w - menu->lbl2S.rect.w)/2;
     menu->lbl2S.rect.y = menu->btn2S.rect.y + (menu->btn2S.rect.h - menu->lbl2S.rect.h)/2;
 
+    //carga audio
+    menu->btn1S.melody = sound_load(CLICK);
+    menu->btn2S.melody = sound_load(CLICK);
+    menu->btnBack.melody = sound_load(CLICK);
+    if(!menu->btn1S.melody || !menu->btn2S.melody || !menu->btnBack.melody)
+    {
+        fprintf(stderr,"No se pudo cargar el sonido.");
+        sound_finish();
+    }
+
     return OK;
 }
 
@@ -638,16 +705,21 @@ void setCardMenuUpdate(tSetCardMenu* menu, tInput* input, ScreenType* currentScr
         {
             strcpy(menu->setCardChoosen, "Medieval");
             *currentScreen = SCREEN_SET_DIFFICULT;
+            sound_play(menu->btn1S.melody,0);//reproduce sonido
             return;
         }
         if(pointInRect(input->mouseX, input->mouseY, &menu->btn2S.rect))
         {
             strcpy(menu->setCardChoosen, "Griego");
             *currentScreen = SCREEN_SET_DIFFICULT;
+            sound_play(menu->btn2S.melody,0);//reproduce sonido
             return;
         }
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnBack.rect))
+        {
             *currentScreen = PreviousScreen;
+            sound_play(menu->btnBack.melody,0);//reproduce sonido
+        }
     }
 }
 
@@ -686,6 +758,11 @@ void setCardMenuDestroy(tSetCardMenu* menu)
 {
     if(menu->lbl1S.texture) SDL_DestroyTexture(menu->lbl1S.texture);
     if(menu->lbl2S.texture) SDL_DestroyTexture(menu->lbl2S.texture);
+
+    //destroy music
+    sound_destroy(menu->btn1S.melody);
+    sound_destroy(menu->btn2S.melody);
+    sound_destroy(menu->btnBack.melody);
 }
 
 // =========================================================
@@ -732,6 +809,16 @@ int setDiffMenuInit(tSetDiffMenu* menu, SDL_Renderer* renderer, tAssets* assets)
     menu->lblHigh.rect.x = menu->btnHigh.rect.x + (menu->btnHigh.rect.w - menu->lblHigh.rect.w)/2;
     menu->lblHigh.rect.y = menu->btnHigh.rect.y + (menu->btnHigh.rect.h - menu->lblHigh.rect.h)/2;
 
+    //carga music
+    menu->btnLow.melody = sound_load(CLICK);
+    menu->btnMid.melody = sound_load(CLICK);
+    menu->btnHigh.melody = sound_load(CLICK);
+    menu->btnBack.melody = sound_load(CLICK);
+    if(!menu->btnLow.melody || !menu->btnMid.melody || !menu->btnHigh.melody || !menu->btnBack.melody)
+    {
+        fprintf(stderr,"No se pudo cargar el sonido.");
+        sound_finish();
+    }
 
     return OK;
 }
@@ -748,16 +835,19 @@ void setDiffMenuUpdate(tSetDiffMenu* menu, tInput* input, ScreenType* currentScr
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnLow.rect))
         {
             *currentScreen = SCREEN_GAME_LOW;
+            sound_play(menu->btnLow.melody,0);//reproduce music
             return;
         }
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnMid.rect))
         {
             *currentScreen = SCREEN_GAME_MID;
+            sound_play(menu->btnMid.melody,0);//reproduce music
             return;
         }
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnHigh.rect))
         {
             *currentScreen = SCREEN_GAME_HIGH;
+            sound_play(menu->btnHigh.melody,0);//reproduce music
             return;
         }
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnBack.rect)) *currentScreen = SCREEN_SET_CARDS;
@@ -811,6 +901,11 @@ void setDiffMenuDestroy(tSetDiffMenu* menu)
     if(menu->lblLow.texture) SDL_DestroyTexture(menu->lblLow.texture);
     if(menu->lblMid.texture) SDL_DestroyTexture(menu->lblMid.texture);
     if(menu->lblHigh.texture) SDL_DestroyTexture(menu->lblHigh.texture);
+    //destroy music
+    sound_destroy(menu->btnLow.melody);
+    sound_destroy(menu->btnMid.melody);
+    sound_destroy(menu->btnHigh.melody);
+    sound_destroy(menu->btnBack.melody);
 }
 
 // =========================================================
@@ -836,7 +931,7 @@ int playSPInit(tPlaySPScreen* SP, SDL_Renderer* renderer, tAssets* assets, tPlay
         return SDL_ERR;
 
     SP->lblPlayerScore.rect.x = SCREEN_WIDTH - 150;
-    SP->lblPlayerScore.rect.y = 90; 
+    SP->lblPlayerScore.rect.y = 90;
 
     SP->selection.firstSelected = -1;
     SP->selection.secondSelected = -1;
@@ -881,7 +976,7 @@ void playSPUpdate(tPlaySPScreen* SP, tGame* game, tBoard* board, tInput* input)
     int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
     if(clicked == -1)
         return;
-    
+
     tCard* card = &board->cards[clicked];
 
     if(card->isFlipped || card->isMatched)
@@ -912,14 +1007,18 @@ void playSPUpdate(tPlaySPScreen* SP, tGame* game, tBoard* board, tInput* input)
 
             SP->selection.firstSelected = -1;
             SP->selection.secondSelected = -1;
+
+            sound_play(c2->sound_Matched,0);
         }
         else
         {
             SP->selection.waiting = 1;
             SP->selection.waitStart = currentTime;
+
+            sound_play(c2->sound_Not_Matched,0);
         }
     }
-    
+
 }
 
 void playSPRender(SDL_Renderer* renderer, tPlaySPScreen* SP, tAssets* assets, tBoard* board)

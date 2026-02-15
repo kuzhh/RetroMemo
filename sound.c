@@ -1,6 +1,7 @@
 #include "sound.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #define MIXER_CANAL_LIBRE -1 // Reproduce en el primer canal libre disponible
@@ -8,21 +9,22 @@
 #define BUFFER_AUDIO 1024
 #define MONO 1
 
-struct sSound{
-    Mix_Chunk *chunk;
-    uint8_t isTone;
-};
-
 tFormatsSnd sound_start()
 {
-    tFormatsSnd formatsSnd = SOUND_MP3;
-    int32_t flags = MIX_INIT_MP3;// Soporte para MP3
+    tFormatsSnd formatsSnd = SOUND_WAV; // Soporte para WAV ya incluido
+    int32_t flags = MIX_INIT_MP3 | MIX_INIT_OGG;
     int32_t init = Mix_Init(flags); // Inicializa SDL_mixer
 
     if ((init & flags) != flags) {
         fprintf(stderr,"Error: %s\n", Mix_GetError());
-        Mix_Quit();
-        return SOUND_ERR;
+    }
+
+    if (init & MIX_INIT_MP3) {
+        formatsSnd |= SOUND_MP3;
+    }
+
+    if (init & MIX_INIT_OGG) {
+        formatsSnd |= SOUND_OGG;
     }
 
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MONO, BUFFER_AUDIO) < 0) { // Abre el dispositivo de audio en modo Mono
@@ -31,8 +33,9 @@ tFormatsSnd sound_start()
         return SOUND_ERR;
     }
 
-    Mix_Volume(MIXER_CANAL_PRINCIPAL,5); // reduccion del volumen.
-    Mix_Volume(MIXER_CANAL_LIBRE,50); // reduccion del volumen.
+    // reduccion del volumen.
+    Mix_VolumeMusic(5);
+    Mix_Volume(MIXER_CANAL_LIBRE,15); // reduccion del volumen.
 
     return formatsSnd;
 }
@@ -44,56 +47,73 @@ tSound* sound_load(const char *path)
         return NULL;
     }
 
-    sound->isTone = 0;
-    sound->chunk = Mix_LoadWAV(path);
-    if (!sound->chunk) {
-        fprintf(stderr, "Fallo la carga del sonido \"%s:\" %s\n", path, Mix_GetError());
-        free(sound);
-        return NULL;
+    // Detectar extensión
+    const char *ext = strrchr(path, '.');
+    //si es MP3
+    if (ext && strcmp(ext, ".mp3") == 0) {
+        sound->music = Mix_LoadMUS(path);
+        if (!sound->music) {
+            fprintf(stderr, "Error cargando MP3: %s\n", Mix_GetError());
+            fprintf(stderr, "%s\n", Mix_GetError());
+
+            free(sound);
+            return NULL;
+        }
+        sound->chunk = 0;
+        sound->isTone = 1;
+    }
+    else//si es WAV
+    {
+        sound->chunk = Mix_LoadWAV(path);
+        if (!sound->chunk) {
+            fprintf(stderr, "Error cargando WAV: %s\n", Mix_GetError());
+            fprintf(stderr, "%s\n", Mix_GetError());
+
+            free(sound);
+            return NULL;
+        }
+        sound->music = 0;
+        sound->isTone = 0;
     }
 
     return sound;
 }
 
-void sound_play(const tSound *sound, int32_t cantVeces, int channel)
+void sound_play(const tSound *sound, int32_t cantVeces)
 {
-    if (!sound->chunk) {
-        return;
-    }
-
     int32_t loops;
     if (cantVeces == -1) {
         loops = -1; //reproduce de forma infinito hasta finalizar programa
     } else {
         loops = (cantVeces > 0) ? (cantVeces - 1) : 0; // 0 reproduce 1 vez, 1 reproduce 2 veces
     }
-
-    if (Mix_PlayChannel(channel == 0 ? MIXER_CANAL_PRINCIPAL : MIXER_CANAL_LIBRE, sound->chunk, loops) == -1) {
-        fprintf(stderr, "No se pudo reproducir el sonido: %s\n", Mix_GetError());
+    //pregunta si es el sonido principal.
+    if (sound->music) {  // MP3
+        if (Mix_PlayMusic(sound->music, loops) == -1) {
+            fprintf(stderr, "Error al reproducir música: %s\n", Mix_GetError());
+        }
+    }else{// WAV
+        if (Mix_PlayChannel(MIXER_CANAL_LIBRE, sound->chunk, loops) == -1) {
+            fprintf(stderr, "Error al reproducir efecto: %s\n", Mix_GetError());
+        }
     }
 }
 
 void sound_destroy(tSound *sound)
 {
-    if (!sound) {
-        return;
-    }
+    if (!sound) return;
 
     if (sound->isTone) {
-        if (sound->chunk) {
-            if (sound->chunk->abuf) {
-                free(sound->chunk->abuf);
-            }
-            free(sound->chunk);
-        }
+        if (sound->music)
+            Mix_FreeMusic(sound->music);
     } else {
-        if (sound->chunk) {
+        if (sound->chunk)
             Mix_FreeChunk(sound->chunk);
-        }
     }
 
     free(sound);
 }
+
 
 void sound_finish(void)
 {

@@ -1,5 +1,8 @@
 #include "board.h"
 
+#define SOUND_MATCHED "snd/Correcto.wav"
+#define SOUND_NOT_MATCHED "snd/Fallo.wav"
+
 void shuffleCards(tBoard* board)
 {
     srand((unsigned int)time(NULL));
@@ -41,6 +44,10 @@ int boardInit(tBoard* board, int rows, int cols)
         board->cards[i].isFlipped = 0;
         board->cards[i].isMatched = 0;
         board->cards[i].id = i / 2;
+
+        //cargo sonido cartas
+        board->cards[i].sound_Matched = sound_load(SOUND_MATCHED);
+        board->cards[i].sound_Not_Matched = sound_load(SOUND_NOT_MATCHED);
     }
 
     shuffleCards(board);
@@ -55,6 +62,11 @@ void boardDestroy(tBoard* board)
         free(board->cards);
         board->cards = NULL;
     }
+    for(int i=0;i<board->totalCards;i++){
+        sound_destroy(board->cards[i].sound_Matched);
+        sound_destroy(board->cards[i].sound_Not_Matched);
+    }
+
 }
 
 void boardRender(SDL_Renderer* renderer, tBoard* board, tCardSet* card)

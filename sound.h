@@ -6,14 +6,21 @@
 #define AMPLITUD_TONO 8192
 #define FREC_MUESTREO 44100
 
-//estructura de formato de audio soportado y error.
+//estructura de formato de audios soportados y error.
 typedef enum {
     SOUND_ERR = -1,
-    SOUND_MP3 = 0x01
-} tFormatsSnd;
+    SOUND_WAV = 0x00,
+    SOUND_MP3 = 0x01,
+    SOUND_OGG = 0x02,
+}tFormatsSnd;
 
-//estructura opaca
-typedef struct sSound tSound;
+
+//estructura
+typedef struct {
+    Mix_Chunk* chunk;   // efectos (WAV)
+    Mix_Music* music;   // música (MP3)
+    int isTone;
+}tSound;
 
 //inicia audios y devuelve el formato o error.
 tFormatsSnd sound_start(void);
@@ -22,7 +29,7 @@ tFormatsSnd sound_start(void);
 tSound* sound_load(const char *path);
 
 //reproduce el sonido indicando la cantidad de veces, puede ser infinita con -1.
-void sound_play(const tSound *sound, int32_t cantVeces,int channel);
+void sound_play(const tSound *sound, int32_t cantVeces);
 
 //libera la memoria del sonido.
 void sound_destroy(tSound *sound);

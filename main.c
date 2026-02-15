@@ -47,9 +47,16 @@ int main(int argc, char* argv[])
     input.textInputLen = 0;
     input.textActive = 0;
 
+    //iniciar mixer
+    tFormatsSnd formatsSnd = sound_start();
+    if(formatsSnd == SOUND_ERR)
+    {
+        fprintf(stderr, "%s\n", Mix_GetError());
+    }
+
     // Iniciar player
     tPlayer player[2] = {{1, 0, 0, 0, "1P"},{2, 0, 0, 0,"1P"}};
-    
+
     //Declarar board
     tBoard board = {0};
     tGame game;
@@ -78,24 +85,8 @@ int main(int argc, char* argv[])
     //Estado a modificar con eventos
     bool running = true;
 
-    
-
-    //Inicio mixer
-    tFormatsSnd formatsSnd = sound_start();
-    if(formatsSnd != SOUND_ERR)
-    {
-        mainMenu.melody = sound_load("snd/doom.mp3");
-        mainMenu.btnSP.melody = sound_load("snd/Click.mp3");
-        mainMenu.btnMP.melody = sound_load("snd/Click.mp3");
-        mainMenu.btnExit.melody = sound_load("snd/Click.mp3");
-        if(!mainMenu.melody || !mainMenu.btnSP.melody || !mainMenu.btnMP.melody || !mainMenu.btnExit.melody)
-        {
-            fprintf(stderr,"No se pudo cargar el sonido.");
-            sound_finish();
-        }
-    }
     //Inicia reproduccion de audio infinitamente.
-    sound_play(mainMenu.melody,-1,0);
+    sound_play(mainMenu.melody,-1);
 
     //OK
     printf("All good!\n");
@@ -201,7 +192,6 @@ int main(int argc, char* argv[])
 
     //destroys
     boardDestroy(&board);
-    sound_destroy(mainMenu.melody);//destroy melodia
     mainMenuDestroy(&mainMenu);
     singlePlayerDestroy(&singlePlayer);
     assetsUnload(&assets);
