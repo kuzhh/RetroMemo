@@ -51,5 +51,8 @@ typedef struct
 } tScoreRules;
 
 int gameInit(tGame*, tBoard*, int);
+void gameOnPairResolved(tGame* game, int isMatch);
+int gameCommitScoresToFile(const tGame* game);
+int gameGetWinnerIndex(const tGame* game);
 
 #endif // GAME_H_INCLUDED
