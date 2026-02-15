@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
                 boardDestroy(&board);
                 boardInit(&board, LOW_ROWS, LOW_COLS);
                 gameInit(&game, &board, game.playerCount);
-                
+
                 if(game.playerCount == 1)
                     playSPInit(&playSP, screen.renderer, &assets, &game, &board, &setCard);
                 else if(game.playerCount == 2)
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
             {
                 boardDestroy(&board);
                 boardInit(&board, HIGH_ROWS, HIGH_COLS);
-                gameInit(&game, &board, game.playerCount); 
+                gameInit(&game, &board, game.playerCount);
 
                 if(game.playerCount == 1)
                     playSPInit(&playSP, screen.renderer, &assets, &game, &board, &setCard);
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
 
             if(game.playerCount == 1)
             {
-                playSPUpdate(&playSP, &game, &board, &input);
+                playSPUpdate(&playSP, &game, &board, &input,&currentScreen);
                 playSPRender(screen.renderer, &playSP, &assets, &board);
             }
             else if(game.playerCount == 2)
@@ -177,14 +177,14 @@ int main(int argc, char* argv[])
                 playMPUpdate(&playMP, &game, &board, &input, screen.renderer, &assets);
                 playMPRender(screen.renderer, &playMP, &assets, &board, &game);
             }
-            
+
             break;
         case SCREEN_GAME_MID:
             printf("DEBUG main: Estamos en SCREEN_GAME_MID\n");
-            
+
             if(game.playerCount == 1)
             {
-                playSPUpdate(&playSP, &game, &board, &input);
+                playSPUpdate(&playSP, &game, &board, &input,&currentScreen);
                 playSPRender(screen.renderer, &playSP, &assets, &board);
             }
             else if(game.playerCount == 2)
@@ -196,10 +196,10 @@ int main(int argc, char* argv[])
             break;
         case SCREEN_GAME_HIGH:
             printf("DEBUG main: Estamos en SCREEN_GAME_HIGH\n");
-            
+
             if(game.playerCount == 1)
             {
-                playSPUpdate(&playSP, &game, &board, &input);
+                playSPUpdate(&playSP, &game, &board, &input,&currentScreen);
                 playSPRender(screen.renderer, &playSP, &assets, &board);
             }
             else if(game.playerCount == 2)
@@ -233,6 +233,7 @@ int main(int argc, char* argv[])
     }
 
     //destroys
+    sound_finish();
     playMPDestroy(&playMP, &game);
     playSPDestroy(&playSP);
     setDiffMenuDestroy(&setDiff);

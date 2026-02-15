@@ -287,15 +287,15 @@ void singlePlayerUpdate(tSinglePlayerScreen* single, tInput* input, ScreenType* 
     // CONTINUAR
     if(input->mouseReleased && pointInRect(input->mouseX, input->mouseY, &single->btnContinuar.rect))
     {
-        if (input->textInputLen > 0) 
+        if (input->textInputLen > 0)
         {
             strncpy(game->players[0].namePlayer, input->textInput, MAX_TEXT_INPUT - 1);
             game->players[0].namePlayer[MAX_TEXT_INPUT - 1] = '\0';
         }
-        else 
+        else
             strcpy(game->players[0].namePlayer, "Player 1");
 
-        
+
 
         input->textActive = 0;
         SDL_StopTextInput();
@@ -922,14 +922,14 @@ void setDiffMenuDestroy(tSetDiffMenu* menu)
 
 int playSPInit(tPlaySPScreen* SP, SDL_Renderer* renderer, tAssets* assets, tGame* game, tBoard* board, tSetCardMenu* setCardMenu)
 {
-    SP->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
+    SP->btnBack.rect = (SDL_Rect){10, 680, 80, 80};
     SP->btnBack.state = BTN_NORMAL;
 
     SDL_Color white = {255,255,255,255};
     if(lblCreate(&SP->lblPlayerName, renderer, assets->font, game->players[0].namePlayer, white) != OK)
         return SDL_ERR;
 
-    SP->lblPlayerName.rect.x = SCREEN_WIDTH - 150;
+    SP->lblPlayerName.rect.x = 10;
     SP->lblPlayerName.rect.y = 0;
 
     char bufferScore[32];
@@ -938,8 +938,8 @@ int playSPInit(tPlaySPScreen* SP, SDL_Renderer* renderer, tAssets* assets, tGame
     if(lblCreate(&SP->lblPlayerScore, renderer, assets->font, bufferScore, white) != OK)
         return SDL_ERR;
 
-    SP->lblPlayerScore.rect.x = SCREEN_WIDTH - 150;
-    SP->lblPlayerScore.rect.y = 90;
+    SP->lblPlayerScore.rect.x = 15;
+    SP->lblPlayerScore.rect.y = 50;
 
     SP->selection.firstSelected = -1;
     SP->selection.secondSelected = -1;
@@ -954,7 +954,7 @@ int playSPInit(tPlaySPScreen* SP, SDL_Renderer* renderer, tAssets* assets, tGame
     return OK;
 }
 
-void playSPUpdate(tPlaySPScreen* SP, tGame* game, tBoard* board, tInput* input)
+void playSPUpdate(tPlaySPScreen* SP, tGame* game, tBoard* board, tInput* input,ScreenType* currentScreen)
 {
     Uint32 currentTime = SDL_GetTicks();
 
@@ -1070,7 +1070,7 @@ void playSPDestroy(tPlaySPScreen* SP)
 
 int playMPInit(tPlayMPScreen* MP, SDL_Renderer* renderer, tAssets* assets, tGame* game, tBoard* board, tSetCardMenu* setCardMenu)
 {
-    MP->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
+    MP->btnBack.rect = (SDL_Rect){10, 680, 80, 80};
     MP->btnBack.state = BTN_NORMAL;
 
     SDL_Color white = {255,255,255,255};
@@ -1080,8 +1080,8 @@ int playMPInit(tPlayMPScreen* MP, SDL_Renderer* renderer, tAssets* assets, tGame
         if(lblCreate(&MP->lblPlayerName[i], renderer, assets->font, game->players[i].namePlayer, white) != OK)
             return SDL_ERR;
 
-        MP->lblPlayerName[i].rect.x = SCREEN_WIDTH - 200;
-        MP->lblPlayerName[i].rect.y = 50 + i * 120;
+        MP->lblPlayerName[i].rect.x = 10 + i * 120;
+        MP->lblPlayerName[i].rect.y = 10;
 
         char bufferScore[32];
         snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[i].score);
@@ -1089,8 +1089,8 @@ int playMPInit(tPlayMPScreen* MP, SDL_Renderer* renderer, tAssets* assets, tGame
         if(lblCreate(&MP->lblPlayerScore[i], renderer, assets->font, bufferScore, white) != OK)
             return SDL_ERR;
 
-        MP->lblPlayerScore[i].rect.x = SCREEN_WIDTH - 200;
-        MP->lblPlayerScore[i].rect.y = 90 + i * 120;
+        MP->lblPlayerScore[i].rect.x = 10 + i * 120;
+        MP->lblPlayerScore[i].rect.y = 40;
     }
 
     MP->selection.firstSelected = -1;
@@ -1149,8 +1149,8 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
         }
 
         lblCreate(&MP->lblPlayerName[i], renderer, assets->font, game->players[i].namePlayer, color);
-        MP->lblPlayerName[i].rect.x = SCREEN_WIDTH - 200;
-        MP->lblPlayerName[i].rect.y = 50 + i * 120;
+        MP->lblPlayerName[i].rect.x = 10 + i * 120;
+        MP->lblPlayerName[i].rect.y = 10;
 
     }
 
@@ -1180,7 +1180,7 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
         tCard* c1 = &board->cards[MP->selection.firstSelected];
         tCard* c2 = &board->cards[MP->selection.secondSelected];
 
-        if(c1 == c2)
+        if(c1->id == c2->id)
         {
             c1->isMatched = 1;
             c2->isMatched = 1;

@@ -117,6 +117,7 @@ void sound_destroy(tSound *sound)
 
 void sound_finish(void)
 {
+    Mix_HaltMusic();
     Mix_HaltChannel(-1);
     Mix_CloseAudio();
     Mix_Quit();
