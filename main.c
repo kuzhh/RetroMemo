@@ -54,12 +54,9 @@ int main(int argc, char* argv[])
         fprintf(stderr, "%s\n", Mix_GetError());
     }
 
-    // Iniciar player
-    tPlayer player[2] = {{1, 0, 0, 0, "1P"},{2, 0, 0, 0,"1P"}};
-
     //Declarar board
     tBoard board = {0};
-    tGame game;
+    tGame game = {0};
 
     tMainMenu mainMenu;
     mainMenuInit(&mainMenu, screen.renderer, &assets);
@@ -76,8 +73,11 @@ int main(int argc, char* argv[])
     tSetDiffMenu setDiff;
     setDiffMenuInit(&setDiff, screen.renderer, &assets);
 
-    tPlaySPScreen playSP;
-    playSPInit(&playSP, screen.renderer, &assets, player, &board, &setCard);
+    tPlaySPScreen playSP = {0};
+    playSPInit(&playSP, screen.renderer, &assets, &game, &board, &setCard);
+
+    tPlayMPScreen playMP = {0};
+    playMPInit(&playMP, screen.renderer, &assets, &game, &board, &setCard);
 
     //pantalla a mostrar
     ScreenType currentScreen = SCREEN_MAIN;
@@ -107,24 +107,36 @@ int main(int argc, char* argv[])
             {
                 boardDestroy(&board);
                 boardInit(&board, LOW_ROWS, LOW_COLS);
-                gameInit(&game, &board, 1); //un único jugador -- cambiar
-                playSPInit(&playSP, screen.renderer, &assets, player, &board, &setCard);
+                gameInit(&game, &board, game.playerCount);
+                
+                if(game.playerCount == 1)
+                    playSPInit(&playSP, screen.renderer, &assets, &game, &board, &setCard);
+                else if(game.playerCount == 2)
+                    playMPInit(&playMP, screen.renderer, &assets, &game, &board, &setCard);
             }
 
             if(currentScreen == SCREEN_GAME_MID)
             {
                 boardDestroy(&board);
                 boardInit(&board, MID_ROWS, MID_COLS);
-                gameInit(&game, &board, 1); //un único jugador -- cambiar
-                playSPInit(&playSP, screen.renderer, &assets, player, &board, &setCard);
+                gameInit(&game, &board, game.playerCount);
+
+                if(game.playerCount == 1)
+                    playSPInit(&playSP, screen.renderer, &assets, &game, &board, &setCard);
+                else if(game.playerCount == 2)
+                    playMPInit(&playMP, screen.renderer, &assets, &game, &board, &setCard);
             }
 
             if(currentScreen == SCREEN_GAME_HIGH)
             {
                 boardDestroy(&board);
                 boardInit(&board, HIGH_ROWS, HIGH_COLS);
-                gameInit(&game, &board, 1); //un único jugador -- cambiar
-                playSPInit(&playSP, screen.renderer, &assets, player, &board, &setCard);
+                gameInit(&game, &board, game.playerCount); 
+
+                if(game.playerCount == 1)
+                    playSPInit(&playSP, screen.renderer, &assets, &game, &board, &setCard);
+                else if(game.playerCount == 2)
+                    playMPInit(&playMP, screen.renderer, &assets, &game, &board, &setCard);
             }
 
             previousScreen = currentScreen;
@@ -133,15 +145,15 @@ int main(int argc, char* argv[])
         switch(currentScreen)
         {
         case SCREEN_MAIN:
-            mainMenuUpdate(&mainMenu, &input, &currentScreen);
+            mainMenuUpdate(&mainMenu, &input, &currentScreen, &game);
             mainMenuRender(screen.renderer, &mainMenu, &assets);
             break;
         case SCREEN_CONFIG_SINGLE:
-            singlePlayerUpdate(&singlePlayer, &input, &currentScreen, &player[0]);
+            singlePlayerUpdate(&singlePlayer, &input, &currentScreen, &game);
             singlePlayerRender(screen.renderer, &singlePlayer, &assets, &input);
             break;
         case SCREEN_CONFIG_MULTI:
-            multiPlayerUpdate(&multiPlayer, &input, &currentScreen, &player[0]);
+            multiPlayerUpdate(&multiPlayer, &input, &currentScreen, &game);
             multiPlayerRender(screen.renderer, &multiPlayer, &assets, &input);
             break;
         case SCREEN_SET_CARDS:
@@ -154,18 +166,48 @@ int main(int argc, char* argv[])
             break;
         case SCREEN_GAME_LOW:
             printf("DEBUG main: Estamos en SCREEN_GAME_LOW\n");
-            playSPUpdate(&playSP, &game, &board, &input);
-            playSPRender(screen.renderer, &playSP, &assets, &board);
+
+            if(game.playerCount == 1)
+            {
+                playSPUpdate(&playSP, &game, &board, &input);
+                playSPRender(screen.renderer, &playSP, &assets, &board);
+            }
+            else if(game.playerCount == 2)
+            {
+                playMPUpdate(&playMP, &game, &board, &input, screen.renderer, &assets);
+                playMPRender(screen.renderer, &playMP, &assets, &board, &game);
+            }
+            
             break;
         case SCREEN_GAME_MID:
             printf("DEBUG main: Estamos en SCREEN_GAME_MID\n");
-            playSPUpdate(&playSP, &game, &board, &input);
-            playSPRender(screen.renderer, &playSP, &assets, &board);
+            
+            if(game.playerCount == 1)
+            {
+                playSPUpdate(&playSP, &game, &board, &input);
+                playSPRender(screen.renderer, &playSP, &assets, &board);
+            }
+            else if(game.playerCount == 2)
+            {
+                playMPUpdate(&playMP, &game, &board, &input, screen.renderer, &assets);
+                playMPRender(screen.renderer, &playMP, &assets, &board, &game);
+            }
+
             break;
         case SCREEN_GAME_HIGH:
             printf("DEBUG main: Estamos en SCREEN_GAME_HIGH\n");
-            playSPUpdate(&playSP, &game, &board, &input);
-            playSPRender(screen.renderer, &playSP, &assets, &board);
+            
+            if(game.playerCount == 1)
+            {
+                playSPUpdate(&playSP, &game, &board, &input);
+                playSPRender(screen.renderer, &playSP, &assets, &board);
+            }
+            else if(game.playerCount == 2)
+            {
+                playMPUpdate(&playMP, &game, &board, &input, screen.renderer, &assets);
+                playMPRender(screen.renderer, &playMP, &assets, &board, &game);
+            }
+
             break;
         case SCREEN_GAMEOVER:
             printf("DEBUG main: Cambiando a SCREEN_GAMEOVER\n");
@@ -191,9 +233,14 @@ int main(int argc, char* argv[])
     }
 
     //destroys
-    boardDestroy(&board);
-    mainMenuDestroy(&mainMenu);
+    playMPDestroy(&playMP, &game);
+    playSPDestroy(&playSP);
+    setDiffMenuDestroy(&setDiff);
+    setCardMenuDestroy(&setCard);
+    multiPlayerDestroy(&multiPlayer);
     singlePlayerDestroy(&singlePlayer);
+    mainMenuDestroy(&mainMenu);
+    boardDestroy(&board);
     assetsUnload(&assets);
     screenShutdown(&screen);
     printf("Screen closed.\nSee ya!");

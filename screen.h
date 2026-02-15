@@ -120,6 +120,17 @@ typedef struct{
     tCardSet* activeSet;
 }tPlaySPScreen;
 
+typedef struct{
+    tButton btnBack;
+    tLabel lblBack;
+
+    tLabel lblPlayerName[MAX_PLAYERS];
+    tLabel lblPlayerScore[MAX_PLAYERS];
+
+    tSelection selection;
+    tCardSet* activeSet;
+}tPlayMPScreen;
+
 typedef enum {
     SCREEN_MAIN,
     SCREEN_CONFIG_SINGLE,
@@ -138,17 +149,17 @@ void screenShutdown(tScreen*);
 int lblCreate(tLabel*, SDL_Renderer*, TTF_Font*, const char*, SDL_Color);
 
 int mainMenuInit(tMainMenu*, SDL_Renderer*, tAssets*);
-void mainMenuUpdate(tMainMenu*, tInput*, ScreenType*);
+void mainMenuUpdate(tMainMenu*, tInput*, ScreenType*, tGame*);
 void mainMenuRender(SDL_Renderer*, tMainMenu*, tAssets*);
 void mainMenuDestroy(tMainMenu*);
 
 int singlePlayerInit(tSinglePlayerScreen*, SDL_Renderer*, tAssets*);
-void singlePlayerUpdate(tSinglePlayerScreen*, tInput*, ScreenType*, tPlayer*);
+void singlePlayerUpdate(tSinglePlayerScreen*, tInput*, ScreenType*, tGame*);
 void singlePlayerRender(SDL_Renderer*, tSinglePlayerScreen*, tAssets*, tInput*);
 void singlePlayerDestroy(tSinglePlayerScreen*);
 
 int multiPlayerInit(tMultiplayerScreen*, SDL_Renderer*, tAssets*);
-void multiPlayerUpdate(tMultiplayerScreen*, tInput*, ScreenType*, tPlayer*);
+void multiPlayerUpdate(tMultiplayerScreen*, tInput*, ScreenType*, tGame*);
 void multiPlayerRender(SDL_Renderer*, tMultiplayerScreen*, tAssets*, tInput*);
 void multiPlayerDestroy(tMultiplayerScreen*);
 
@@ -162,9 +173,14 @@ void setDiffMenuUpdate(tSetDiffMenu*, tInput*, ScreenType*);
 void setDiffMenuRender(SDL_Renderer*, tSetDiffMenu*, tAssets*);
 void setDiffMenuDestroy(tSetDiffMenu*);
 
-int playSPInit(tPlaySPScreen*, SDL_Renderer*, tAssets*, tPlayer*, tBoard*, tSetCardMenu*);
+int playSPInit(tPlaySPScreen*, SDL_Renderer*, tAssets*, tGame*, tBoard*, tSetCardMenu*);
 void playSPUpdate(tPlaySPScreen*, tGame*, tBoard*, tInput*);
 void playSPRender(SDL_Renderer*, tPlaySPScreen*, tAssets*, tBoard*);
-//void playSPDestroy(void);
+void playSPDestroy(tPlaySPScreen*);
+
+int playMPInit(tPlayMPScreen*, SDL_Renderer*, tAssets*, tGame*, tBoard*, tSetCardMenu*);
+void playMPUpdate(tPlayMPScreen*, tGame*, tBoard*, tInput*, SDL_Renderer*, tAssets*);
+void playMPRender(SDL_Renderer*, tPlayMPScreen*, tAssets*, tBoard*, tGame*);
+void playMPDestroy(tPlayMPScreen*, tGame*);
 
 #endif // SCREEN_H_INCLUDED

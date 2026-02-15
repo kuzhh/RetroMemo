@@ -8,13 +8,13 @@
 /*
 #include "input.h"
 #include "assets.h"
-#include "screen.h"
-#include <string.h>
-#include <stdlib.h>
+#include "screen.h"      
+#include <string.h>     
+#include <stdlib.h>      
 #include <time.h> // biblios que podriamos agregar, por las dudas lo dejo asi */
 
 
-/*FUNCION PARA MEZCLAR CARTAS (capaz sirve)
+/*FUNCION PARA MEZCLAR CARTAS (capaz sirve) 
 static void mezclar(int* a, int n)
 {
     for(int i = 0; i < n - 1; i++)// recorro
@@ -26,6 +26,8 @@ static void mezclar(int* a, int n)
         a[j] = aux;
     }
 }
+
+--- HECHO : shuffleCards en board.c/.h
 */
 
 /*  Inicializa el juego:
@@ -34,11 +36,15 @@ static void mezclar(int* a, int n)
     -inicializa contadores y puntajes (IMPORTANTE: también pairsFound y moves)
     -calcula totalPairs a partir del board
 */
+
 int gameInit(tGame* game, tBoard* board, int playerCount)
 {
     int i;
 
     if(!game || !board)
+        return ERR;
+
+    if(playerCount > MAX_PLAYERS)
         return ERR;
 
     game->state = STATE_PLAYING;
@@ -54,7 +60,7 @@ int gameInit(tGame* game, tBoard* board, int playerCount)
     {
         game->players[i].score = 0;
         game->players[i].pairsFound = 0; // evito basura ADD
-        game->players[i].moves = 0;      // idem ADD
+        game->players[i].moves = 0;      //idem ADD
     }
 
     game->totalPairs = board->totalCards / 2;
@@ -159,5 +165,3 @@ int gameCommitScoresToFile(const tGame* game)//guardar score
 
     return 1;
 }
-
-

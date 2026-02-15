@@ -57,16 +57,16 @@ int boardInit(tBoard* board, int rows, int cols)
 
 void boardDestroy(tBoard* board)
 {
-    if(board->cards)
-    {
-        free(board->cards);
-        board->cards = NULL;
-    }
+    if(!board->cards)
+        return;
+
     for(int i=0;i<board->totalCards;i++){
         sound_destroy(board->cards[i].sound_Matched);
         sound_destroy(board->cards[i].sound_Not_Matched);
     }
-
+    
+    free(board->cards);
+    board->cards = NULL;
 }
 
 void boardRender(SDL_Renderer* renderer, tBoard* board, tCardSet* card)

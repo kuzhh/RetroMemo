@@ -125,7 +125,7 @@ int mainMenuInit(tMainMenu* menu, SDL_Renderer* renderer, tAssets* assets)
     return OK;
 }
 
-void mainMenuUpdate(tMainMenu* menu, tInput* input, ScreenType* currentScreen)
+void mainMenuUpdate(tMainMenu* menu, tInput* input, ScreenType* currentScreen, tGame* game)
 {
     btnUpdate(&menu->btnSP, input);
     btnUpdate(&menu->btnMP, input);
@@ -136,15 +136,18 @@ void mainMenuUpdate(tMainMenu* menu, tInput* input, ScreenType* currentScreen)
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnSP.rect)){
             *currentScreen = SCREEN_CONFIG_SINGLE;
             sound_play(menu->btnSP.melody,0);//reproduce sonido
+            game->playerCount = 1;
         }
 
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnMP.rect)) {
             *currentScreen = SCREEN_CONFIG_MULTI;
             sound_play(menu->btnMP.melody,0);//reproduce sonido
+            game->playerCount = 2;
         }
         if(pointInRect(input->mouseX, input->mouseY, &menu->btnExit.rect)){
             *currentScreen = SCREEN_EXIT;
             sound_play(menu->btnExit.melody,0);//reproduce sonido
+            game->playerCount = 0;
         }
     }
 }
@@ -243,7 +246,7 @@ int singlePlayerInit(tSinglePlayerScreen* single, SDL_Renderer* renderer, tAsset
     return OK;
 }
 
-void singlePlayerUpdate(tSinglePlayerScreen* single, tInput* input, ScreenType* currentScreen, tPlayer *player)
+void singlePlayerUpdate(tSinglePlayerScreen* single, tInput* input, ScreenType* currentScreen, tGame* game)
 {
     btnUpdate(&single->btnContinuar, input);
 
@@ -284,10 +287,15 @@ void singlePlayerUpdate(tSinglePlayerScreen* single, tInput* input, ScreenType* 
     // CONTINUAR
     if(input->mouseReleased && pointInRect(input->mouseX, input->mouseY, &single->btnContinuar.rect))
     {
-        if (input->textInputLen > 0) strncpy(player->namePlayer, input->textInput, MAX_TEXT_INPUT - 1);
-        else strcpy(player->namePlayer, "Player 1");
+        if (input->textInputLen > 0) 
+        {
+            strncpy(game->players[0].namePlayer, input->textInput, MAX_TEXT_INPUT - 1);
+            game->players[0].namePlayer[MAX_TEXT_INPUT - 1] = '\0';
+        }
+        else 
+            strcpy(game->players[0].namePlayer, "Player 1");
 
-        player->namePlayer[MAX_TEXT_INPUT - 1] = '\0';
+        
 
         input->textActive = 0;
         SDL_StopTextInput();
@@ -431,7 +439,7 @@ int multiPlayerInit(tMultiplayerScreen* multi, SDL_Renderer* renderer, tAssets* 
     return OK;
 }
 
-void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* currentScreen, tPlayer* player)
+void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* currentScreen, tGame* game)
 {
     btnUpdate(&multi->btnContinuar, input);
 
@@ -539,11 +547,11 @@ void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* cur
         if(multi->textActive1) strncpy(multi->textInput1, input->textInput, MAX_TEXT_INPUT-1);
         if(multi->textActive2) strncpy(multi->textInput2, input->textInput, MAX_TEXT_INPUT-1);
 
-        if(strlen(multi->textInput1) > 0) strcpy(player[0].namePlayer, multi->textInput1);
-        else strcpy(player[0].namePlayer, "Player 1");
+        if(strlen(multi->textInput1) > 0) strcpy(game->players[0].namePlayer, multi->textInput1);
+        else strcpy(game->players[0].namePlayer, "Player 1");
 
-        if(strlen(multi->textInput2) > 0) strcpy(player[1].namePlayer, multi->textInput2);
-        else strcpy(player[1].namePlayer, "Player 2");
+        if(strlen(multi->textInput2) > 0) strcpy(game->players[1].namePlayer, multi->textInput2);
+        else strcpy(game->players[1].namePlayer, "Player 2");
 
         multi->textActive1 = 0; multi->textActive2 = 0;
         input->textActive = 0;
@@ -912,20 +920,20 @@ void setDiffMenuDestroy(tSetDiffMenu* menu)
 // GAME IN COURSE -- SP PLAYING
 // =========================================================
 
-int playSPInit(tPlaySPScreen* SP, SDL_Renderer* renderer, tAssets* assets, tPlayer* player, tBoard* board, tSetCardMenu* setCardMenu)
+int playSPInit(tPlaySPScreen* SP, SDL_Renderer* renderer, tAssets* assets, tGame* game, tBoard* board, tSetCardMenu* setCardMenu)
 {
     SP->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
     SP->btnBack.state = BTN_NORMAL;
 
     SDL_Color white = {255,255,255,255};
-    if(lblCreate(&SP->lblPlayerName, renderer, assets->font, player[0].namePlayer, white) != OK)
+    if(lblCreate(&SP->lblPlayerName, renderer, assets->font, game->players[0].namePlayer, white) != OK)
         return SDL_ERR;
 
     SP->lblPlayerName.rect.x = SCREEN_WIDTH - 150;
     SP->lblPlayerName.rect.y = 0;
 
     char bufferScore[32];
-    snprintf(bufferScore, sizeof(bufferScore), "%d", player[0].score);
+    snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[0].score);
 
     if(lblCreate(&SP->lblPlayerScore, renderer, assets->font, bufferScore, white) != OK)
         return SDL_ERR;
@@ -1030,4 +1038,201 @@ void playSPRender(SDL_Renderer* renderer, tPlaySPScreen* SP, tAssets* assets, tB
     SDL_RenderCopy(renderer, SP->lblPlayerScore.texture, NULL, &SP->lblPlayerScore.rect);
 
     boardRender(renderer, board, SP->activeSet);
+}
+
+void playSPDestroy(tPlaySPScreen* SP)
+{
+    if(!SP)
+        return;
+
+    if(SP->lblBack.texture)
+    {
+        SDL_DestroyTexture(SP->lblBack.texture);
+        SP->lblBack.texture = NULL;
+    }
+
+    if(SP->lblPlayerName.texture)
+    {
+        SDL_DestroyTexture(SP->lblPlayerName.texture);
+        SP->lblPlayerName.texture = NULL;
+    }
+
+    if(SP->lblPlayerScore.texture)
+    {
+        SDL_DestroyTexture(SP->lblPlayerScore.texture);
+        SP->lblPlayerScore.texture = NULL;
+    }
+}
+
+// =========================================================
+// GAME IN COURSE -- MP PLAYING
+// =========================================================
+
+int playMPInit(tPlayMPScreen* MP, SDL_Renderer* renderer, tAssets* assets, tGame* game, tBoard* board, tSetCardMenu* setCardMenu)
+{
+    MP->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
+    MP->btnBack.state = BTN_NORMAL;
+
+    SDL_Color white = {255,255,255,255};
+
+    for(int i=0; i < game->playerCount; i++)
+    {
+        if(lblCreate(&MP->lblPlayerName[i], renderer, assets->font, game->players[i].namePlayer, white) != OK)
+            return SDL_ERR;
+
+        MP->lblPlayerName[i].rect.x = SCREEN_WIDTH - 200;
+        MP->lblPlayerName[i].rect.y = 50 + i * 120;
+
+        char bufferScore[32];
+        snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[i].score);
+
+        if(lblCreate(&MP->lblPlayerScore[i], renderer, assets->font, bufferScore, white) != OK)
+            return SDL_ERR;
+
+        MP->lblPlayerScore[i].rect.x = SCREEN_WIDTH - 200;
+        MP->lblPlayerScore[i].rect.y = 90 + i * 120;
+    }
+
+    MP->selection.firstSelected = -1;
+    MP->selection.secondSelected = -1;
+    MP->selection.waiting = 0;
+    MP->selection.waitStart = 0;
+
+    if(strcmp(setCardMenu->setCardChoosen, "Medieval") == 0)
+        MP->activeSet = &assets->dsSet;
+    else
+        MP->activeSet = &assets->greekSet;
+
+    return OK;
+}
+
+void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, SDL_Renderer* renderer, tAssets* assets)
+{
+    Uint32 currentTime = SDL_GetTicks();
+
+    if(MP->selection.waiting)
+    {
+        if(currentTime - MP->selection.waitStart > 800)
+        {
+            tCard* c1 = &board->cards[MP->selection.firstSelected];
+            tCard* c2 = &board->cards[MP->selection.secondSelected];
+
+            c1->isFlipped = 0;
+            c2->isFlipped = 0;
+
+            MP->selection.firstSelected = -1;
+            MP->selection.secondSelected = -1;
+            MP->selection.waiting = 0;
+
+            game->currentPlayer = (game->currentPlayer + 1) % game->playerCount;
+        }
+
+        return;
+    }
+
+    if(!input->mousePressed)
+        return;
+
+    //highlighteo al que le corresponde el turno
+    SDL_Color white = {255,255,255,255};
+    SDL_Color highlight = {255, 215, 0, 255};
+
+    for(int i = 0; i < game->playerCount; i++)
+    {
+        SDL_Color color = (i == game->currentPlayer) ? highlight : white;
+
+        //chau lbl anterior
+        if(MP->lblPlayerName[i].texture)
+        {
+            SDL_DestroyTexture(MP->lblPlayerName[i].texture);
+            MP->lblPlayerName[i].texture = NULL;
+        }
+
+        lblCreate(&MP->lblPlayerName[i], renderer, assets->font, game->players[i].namePlayer, color);
+        MP->lblPlayerName[i].rect.x = SCREEN_WIDTH - 200;
+        MP->lblPlayerName[i].rect.y = 50 + i * 120;
+
+    }
+
+    int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
+
+    if(clicked == -1)
+        return;
+
+    tCard* card = &board->cards[clicked];
+
+    if(card->isFlipped || card->isMatched)
+        return;
+
+    card->isFlipped = 1;
+
+    if(MP->selection.firstSelected == -1)
+    {
+        MP->selection.firstSelected = clicked;
+    }
+    else if(MP->selection.secondSelected == -1)
+    {
+        if(clicked == MP->selection.firstSelected)
+            return;
+
+        MP->selection.secondSelected = clicked;
+
+        tCard* c1 = &board->cards[MP->selection.firstSelected];
+        tCard* c2 = &board->cards[MP->selection.secondSelected];
+
+        if(c1 == c2)
+        {
+            c1->isMatched = 1;
+            c2->isMatched = 1;
+
+            game->players[game->currentPlayer].score++; //cambiar
+
+            MP->selection.firstSelected = -1;
+            MP->selection.secondSelected = -1;
+
+            sound_play(c2->sound_Matched, 0);
+        }
+        else
+        {
+            MP->selection.waiting = 1;
+            MP->selection.waitStart = currentTime;
+
+            sound_play(c2->sound_Not_Matched, 0);
+        }
+    }
+}
+
+void playMPRender(SDL_Renderer* renderer, tPlayMPScreen* MP, tAssets* assets, tBoard* board, tGame* game)
+{
+    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
+    SDL_RenderCopy(renderer, assets->back, NULL, &MP->btnBack.rect);
+
+    for(int i=0; i < game->playerCount; i++)
+    {
+        SDL_RenderCopy(renderer, MP->lblPlayerName[i].texture, NULL, &MP->lblPlayerName[i].rect);
+        SDL_RenderCopy(renderer, MP->lblPlayerScore[i].texture, NULL, &MP->lblPlayerScore[i].rect);
+    }
+
+    boardRender(renderer, board, MP->activeSet);
+}
+
+void playMPDestroy(tPlayMPScreen* MP, tGame* game)
+{
+    if(!MP || !game)
+        return;
+
+    for(int i = 0; i < game->playerCount; i++)
+    {
+        if(MP->lblPlayerName[i].texture)
+        {
+            SDL_DestroyTexture(MP->lblPlayerName[i].texture);
+            MP->lblPlayerName[i].texture = NULL;
+        }
+
+        if(MP->lblPlayerScore[i].texture)
+        {
+            SDL_DestroyTexture(MP->lblPlayerScore[i].texture);
+            MP->lblPlayerScore[i].texture = NULL;
+        }
+    }
 }
