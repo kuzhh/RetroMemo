@@ -1075,24 +1075,38 @@ int playMPInit(tPlayMPScreen* MP, SDL_Renderer* renderer, tAssets* assets, tGame
 
     SDL_Color white = {255,255,255,255};
 
-    for(int i=0; i < game->playerCount; i++)
-    {
-        if(lblCreate(&MP->lblPlayerName[i], renderer, assets->font, game->players[i].namePlayer, white) != OK)
-            return SDL_ERR;
+    /////////////////////player 1//////////////////////////////
+    if(lblCreate(&MP->lblPlayerName[0], renderer, assets->font, game->players[0].namePlayer, white) != OK)
+        return SDL_ERR;
 
-        MP->lblPlayerName[i].rect.x = 10 + i * 120;
-        MP->lblPlayerName[i].rect.y = 10;
+    MP->lblPlayerName[0].rect.x = 10;
+    MP->lblPlayerName[0].rect.y = 10;
 
-        char bufferScore[32];
-        snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[i].score);
+    char bufferScore[32];
+    snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[0].score);
 
-        if(lblCreate(&MP->lblPlayerScore[i], renderer, assets->font, bufferScore, white) != OK)
-            return SDL_ERR;
+    if(lblCreate(&MP->lblPlayerScore[0], renderer, assets->font, bufferScore, white) != OK)
+        return SDL_ERR;
 
-        MP->lblPlayerScore[i].rect.x = 10 + i * 120;
-        MP->lblPlayerScore[i].rect.y = 40;
-    }
+    MP->lblPlayerScore[0].rect.x = 10;
+    MP->lblPlayerScore[0].rect.y = 40;
+    ////////////////////////player 2////////////////////////////////////
+    if(lblCreate(&MP->lblPlayerName[1], renderer, assets->font, game->players[1].namePlayer, white) != OK)
+        return SDL_ERR;
 
+    MP->lblPlayerName[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
+    MP->lblPlayerName[1].rect.y = 10;
+
+    snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[1].score);
+
+    if(lblCreate(&MP->lblPlayerScore[1], renderer, assets->font, bufferScore, white) != OK)
+        return SDL_ERR;
+
+    MP->lblPlayerScore[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
+    MP->lblPlayerScore[1].rect.y = 40;
+
+
+    MP->lastPlayer = -1;
     MP->selection.firstSelected = -1;
     MP->selection.secondSelected = -1;
     MP->selection.waiting = 0;
@@ -1109,6 +1123,39 @@ int playMPInit(tPlayMPScreen* MP, SDL_Renderer* renderer, tAssets* assets, tGame
 void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, SDL_Renderer* renderer, tAssets* assets)
 {
     Uint32 currentTime = SDL_GetTicks();
+
+    if(MP->lastPlayer != game->currentPlayer)
+    {
+        MP->lastPlayer = game->currentPlayer;
+        //highlighteo al que le corresponde el turno
+        SDL_Color white = {255,255,255,255};
+        SDL_Color highlight = {255, 215, 0, 255};
+
+
+
+        for(int i = 0; i < game->playerCount; i++)
+        {
+            SDL_Color color = (i == game->currentPlayer) ? highlight : white;
+
+            //chau lbl anterior
+            if(MP->lblPlayerName[i].texture)
+            {
+                SDL_DestroyTexture(MP->lblPlayerName[i].texture);
+                MP->lblPlayerName[i].texture = NULL;
+            }
+
+        lblCreate(&MP->lblPlayerName[i], renderer, assets->font, game->players[i].namePlayer, color);
+
+        MP->lblPlayerName[0].rect.x = 10;
+        MP->lblPlayerName[0].rect.y = 10;
+
+        MP->lblPlayerName[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
+        MP->lblPlayerName[1].rect.y = 10;
+
+        }
+
+    }
+
 
     if(MP->selection.waiting)
     {
@@ -1133,26 +1180,6 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
     if(!input->mousePressed)
         return;
 
-    //highlighteo al que le corresponde el turno
-    SDL_Color white = {255,255,255,255};
-    SDL_Color highlight = {255, 215, 0, 255};
-
-    for(int i = 0; i < game->playerCount; i++)
-    {
-        SDL_Color color = (i == game->currentPlayer) ? highlight : white;
-
-        //chau lbl anterior
-        if(MP->lblPlayerName[i].texture)
-        {
-            SDL_DestroyTexture(MP->lblPlayerName[i].texture);
-            MP->lblPlayerName[i].texture = NULL;
-        }
-
-        lblCreate(&MP->lblPlayerName[i], renderer, assets->font, game->players[i].namePlayer, color);
-        MP->lblPlayerName[i].rect.x = 10 + i * 120;
-        MP->lblPlayerName[i].rect.y = 10;
-
-    }
 
     int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
 

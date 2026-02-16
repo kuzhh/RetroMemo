@@ -129,6 +129,8 @@ typedef struct{
 
     tSelection selection;
     tCardSet* activeSet;
+
+    int lastPlayer;
 }tPlayMPScreen;
 
 typedef enum {
@@ -174,7 +176,7 @@ void setDiffMenuRender(SDL_Renderer*, tSetDiffMenu*, tAssets*);
 void setDiffMenuDestroy(tSetDiffMenu*);
 
 int playSPInit(tPlaySPScreen*, SDL_Renderer*, tAssets*, tGame*, tBoard*, tSetCardMenu*);
-void playSPUpdate(tPlaySPScreen*, tGame*, tBoard*, tInput*);
+void playSPUpdate(tPlaySPScreen*, tGame*, tBoard*, tInput*,ScreenType*);
 void playSPRender(SDL_Renderer*, tPlaySPScreen*, tAssets*, tBoard*);
 void playSPDestroy(tPlaySPScreen*);
 
