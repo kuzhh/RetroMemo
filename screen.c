@@ -945,6 +945,10 @@ int playSPInit(tPlaySPScreen* SP, SDL_Renderer* renderer, tAssets* assets, tGame
     SP->selection.secondSelected = -1;
     SP->selection.waiting = 0;
     SP->selection.waitStart = 0;
+    ////////////////////
+    SP->scoreValue = game->players[0].score;
+    SP->scoreRendered = SP->scoreValue;
+    ////////////////////
 
     if(strcmp(setCardMenu->setCardChoosen, "Medieval") == 0)
         SP->activeSet = &assets->dsSet;
@@ -1021,6 +1025,8 @@ void playSPUpdate(tPlaySPScreen* SP, tGame* game, tBoard* board, tInput* input,S
         else
         {
             SP->selection.waiting = 1;
+            gameOnPairResolved(game, 1);
+            SP->scoreValue = game->players[0].score;
             SP->selection.waitStart = currentTime;
 
             sound_play(c2->sound_Not_Matched,0);
@@ -1031,6 +1037,26 @@ void playSPUpdate(tPlaySPScreen* SP, tGame* game, tBoard* board, tInput* input,S
 
 void playSPRender(SDL_Renderer* renderer, tPlaySPScreen* SP, tAssets* assets, tBoard* board)
 {
+    if(SP->scoreRendered != SP->scoreValue)
+    {
+        SP->scoreRendered = SP->scoreValue;
+
+        char buffer[32];
+        snprintf(buffer, sizeof(buffer), "%d", SP->scoreRendered);
+
+        if(SP->lblPlayerScore.texture){
+            SDL_DestroyTexture(SP->lblPlayerScore.texture);
+            SP->lblPlayerScore.texture = NULL;
+        }
+
+        SDL_Color white = {255,255,255,255};
+        lblCreate(&SP->lblPlayerScore, renderer, assets->font, buffer, white);
+
+        // mantener pos fija
+        SP->lblPlayerScore.rect.x = 15;
+        SP->lblPlayerScore.rect.y = 50;
+    }
+
     SDL_RenderCopy(renderer, assets->background, NULL, NULL);
     SDL_RenderCopy(renderer, assets->back, NULL, &SP->btnBack.rect);
 
@@ -1112,6 +1138,13 @@ int playMPInit(tPlayMPScreen* MP, SDL_Renderer* renderer, tAssets* assets, tGame
     MP->selection.waiting = 0;
     MP->selection.waitStart = 0;
 
+    for(int i=0; i<game->playerCount; i++)
+    {
+        MP->scoreValue[i] = game->players[i].score;
+        MP->scoreRendered[i] = MP->scoreValue[i];
+
+    }
+
     if(strcmp(setCardMenu->setCardChoosen, "Medieval") == 0)
         MP->activeSet = &assets->dsSet;
     else
@@ -1124,14 +1157,15 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
 {
     Uint32 currentTime = SDL_GetTicks();
 
+    // Blindaje básico
+    if(!MP || !game || !board || !board->cards || !input) return;
+
     if(MP->lastPlayer != game->currentPlayer)
     {
         MP->lastPlayer = game->currentPlayer;
         //highlighteo al que le corresponde el turno
         SDL_Color white = {255,255,255,255};
         SDL_Color highlight = {255, 215, 0, 255};
-
-
 
         for(int i = 0; i < game->playerCount; i++)
         {
@@ -1144,21 +1178,28 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
                 MP->lblPlayerName[i].texture = NULL;
             }
 
-        lblCreate(&MP->lblPlayerName[i], renderer, assets->font, game->players[i].namePlayer, color);
+            lblCreate(&MP->lblPlayerName[i], renderer, assets->font, game->players[i].namePlayer, color);
 
-        MP->lblPlayerName[0].rect.x = 10;
-        MP->lblPlayerName[0].rect.y = 10;
+            MP->lblPlayerName[0].rect.x = 10;
+            MP->lblPlayerName[0].rect.y = 10;
 
-        MP->lblPlayerName[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
-        MP->lblPlayerName[1].rect.y = 10;
-
+            MP->lblPlayerName[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
+            MP->lblPlayerName[1].rect.y = 10;
         }
-
     }
-
 
     if(MP->selection.waiting)
     {
+        // Blindaje de índices antes de acceder
+        if(MP->selection.firstSelected < 0 || MP->selection.firstSelected >= board->totalCards ||
+           MP->selection.secondSelected < 0 || MP->selection.secondSelected >= board->totalCards)
+        {
+            MP->selection.firstSelected = -1;
+            MP->selection.secondSelected = -1;
+            MP->selection.waiting = 0;
+            return;
+        }
+
         if(currentTime - MP->selection.waitStart > 800)
         {
             tCard* c1 = &board->cards[MP->selection.firstSelected];
@@ -1171,7 +1212,8 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
             MP->selection.secondSelected = -1;
             MP->selection.waiting = 0;
 
-            game->currentPlayer = (game->currentPlayer + 1) % game->playerCount;
+            // game->currentPlayer = (game->currentPlayer + 1) % game->playerCount;
+            // el turno lo maneja gameOnPairResolved(game, 0) en el NO-match.
         }
 
         return;
@@ -1180,10 +1222,11 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
     if(!input->mousePressed)
         return;
 
-
     int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
 
-    if(clicked == -1)
+    // if(clicked == -1) return;
+    // Mejor validar rango completo
+    if(clicked < 0 || clicked >= board->totalCards)
         return;
 
     tCard* card = &board->cards[clicked];
@@ -1212,27 +1255,71 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
             c1->isMatched = 1;
             c2->isMatched = 1;
 
-            game->players[game->currentPlayer].score++; //cambiar
+            // game->players[game->currentPlayer].score++; //cambiar
+
+            // sumar SOLO cuando hay par (100 puntos por par)
+            gameOnPairResolved(game, 1); // match
+
+            // guardamos el score del jugador actual para que el render refresque el label
+            int p = game->currentPlayer;
+            MP->scoreValue[p] = game->players[p].score;
 
             MP->selection.firstSelected = -1;
             MP->selection.secondSelected = -1;
 
-            sound_play(c2->sound_Matched, 0);
+            // Null-check sonido
+            if(c2->sound_Matched) sound_play(c2->sound_Matched, 0);
         }
         else
         {
             MP->selection.waiting = 1;
             MP->selection.waitStart = currentTime;
 
-            sound_play(c2->sound_Not_Matched, 0);
+            gameOnPairResolved(game, 0);
+
+            // Se puede actualizar scoreValue del jugador (no cambia),
+            // pero no hace falta. Igual lo dejo comentado por si lo quieren:
+            /*{
+                int p = game->currentPlayer;
+                MP->scoreValue[p] = game->players[p].score;
+            }*/
+
+            // Null-check sonido
+            if(c2->sound_Not_Matched) sound_play(c2->sound_Not_Matched, 0);
         }
     }
 }
+
 
 void playMPRender(SDL_Renderer* renderer, tPlayMPScreen* MP, tAssets* assets, tBoard* board, tGame* game)
 {
     SDL_RenderCopy(renderer, assets->background, NULL, NULL);
     SDL_RenderCopy(renderer, assets->back, NULL, &MP->btnBack.rect);
+
+    SDL_Color white = {255,255,255,255};
+
+    for(int i=0; i<game->playerCount; i++)
+    {
+        if(MP->scoreRendered[i] != MP->scoreValue[i])
+        {
+            MP->scoreRendered[i] = MP->scoreValue[i];
+
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "%d", MP->scoreRendered[i]);
+
+            if(MP->lblPlayerScore[i].texture){
+                SDL_DestroyTexture(MP->lblPlayerScore[i].texture);
+                MP->lblPlayerScore[i].texture = NULL;
+            }
+
+            lblCreate(&MP->lblPlayerScore[i], renderer, assets->font, buffer, white);
+
+            // re-ubicar (ajustá a tu UI actual)
+            if(i == 0){ MP->lblPlayerScore[0].rect.x = 10; MP->lblPlayerScore[0].rect.y = 50; }
+            else      { MP->lblPlayerScore[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100; MP->lblPlayerScore[1].rect.y = 50; }
+        }
+    }
+
 
     for(int i=0; i < game->playerCount; i++)
     {
