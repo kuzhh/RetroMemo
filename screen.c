@@ -1157,63 +1157,33 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
 {
     Uint32 currentTime = SDL_GetTicks();
 
-    // Blindaje básico
-    if(!MP || !game || !board || !board->cards || !input) return;
+    // Blindaje básico (evita eorror si algo está NULL)
+    if(!SP || !game || !board || !board->cards || !input)
+        return;
 
-    if(MP->lastPlayer != game->currentPlayer)
+    if(SP->selection.waiting)
     {
-        MP->lastPlayer = game->currentPlayer;
-        //highlighteo al que le corresponde el turno
-        SDL_Color white = {255,255,255,255};
-        SDL_Color highlight = {255, 215, 0, 255};
-
-        for(int i = 0; i < game->playerCount; i++)
+        // Blindaje de índices antes de acceder al array
+        if(SP->selection.firstSelected < 0 || SP->selection.firstSelected >= board->totalCards ||
+           SP->selection.secondSelected < 0 || SP->selection.secondSelected >= board->totalCards)
         {
-            SDL_Color color = (i == game->currentPlayer) ? highlight : white;
-
-            //chau lbl anterior
-            if(MP->lblPlayerName[i].texture)
-            {
-                SDL_DestroyTexture(MP->lblPlayerName[i].texture);
-                MP->lblPlayerName[i].texture = NULL;
-            }
-
-            lblCreate(&MP->lblPlayerName[i], renderer, assets->font, game->players[i].namePlayer, color);
-
-            MP->lblPlayerName[0].rect.x = 10;
-            MP->lblPlayerName[0].rect.y = 10;
-
-            MP->lblPlayerName[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
-            MP->lblPlayerName[1].rect.y = 10;
-        }
-    }
-
-    if(MP->selection.waiting)
-    {
-        // Blindaje de índices antes de acceder
-        if(MP->selection.firstSelected < 0 || MP->selection.firstSelected >= board->totalCards ||
-           MP->selection.secondSelected < 0 || MP->selection.secondSelected >= board->totalCards)
-        {
-            MP->selection.firstSelected = -1;
-            MP->selection.secondSelected = -1;
-            MP->selection.waiting = 0;
+            SP->selection.firstSelected = -1;
+            SP->selection.secondSelected = -1;
+            SP->selection.waiting = 0;
             return;
         }
 
-        if(currentTime - MP->selection.waitStart > 800)
+        if(currentTime - SP->selection.waitStart > 800)
         {
-            tCard* c1 = &board->cards[MP->selection.firstSelected];
-            tCard* c2 = &board->cards[MP->selection.secondSelected];
+            tCard* c1 = &board->cards[SP->selection.firstSelected];
+            tCard* c2 = &board->cards[SP->selection.secondSelected];
 
             c1->isFlipped = 0;
             c2->isFlipped = 0;
 
-            MP->selection.firstSelected = -1;
-            MP->selection.secondSelected = -1;
-            MP->selection.waiting = 0;
-
-            // game->currentPlayer = (game->currentPlayer + 1) % game->playerCount;
-            // el turno lo maneja gameOnPairResolved(game, 0) en el NO-match.
+            SP->selection.firstSelected = -1;
+            SP->selection.secondSelected = -1;
+            SP->selection.waiting = 0;
         }
 
         return;
@@ -1222,10 +1192,12 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
     if(!input->mousePressed)
         return;
 
+    // debug:
+    // printf("Click detectado\n");
+
     int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
 
-    // if(clicked == -1) return;
-    // Mejor validar rango completo
+    // validar rango completo
     if(clicked < 0 || clicked >= board->totalCards)
         return;
 
@@ -1236,55 +1208,71 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
 
     card->isFlipped = 1;
 
-    if(MP->selection.firstSelected == -1)
+    if(SP->selection.firstSelected == -1)
     {
-        MP->selection.firstSelected = clicked;
+        SP->selection.firstSelected = clicked;
+        return;
     }
-    else if(MP->selection.secondSelected == -1)
+    else if(SP->selection.secondSelected == -1)
     {
-        if(clicked == MP->selection.firstSelected)
+        if(clicked == SP->selection.firstSelected)
             return;
 
-        MP->selection.secondSelected = clicked;
+        SP->selection.secondSelected = clicked;
 
-        tCard* c1 = &board->cards[MP->selection.firstSelected];
-        tCard* c2 = &board->cards[MP->selection.secondSelected];
+        // blindaje extra por seguridad
+        if(SP->selection.firstSelected < 0 || SP->selection.firstSelected >= board->totalCards ||
+           SP->selection.secondSelected < 0 || SP->selection.secondSelected >= board->totalCards)
+        {
+            SP->selection.firstSelected = -1;
+            SP->selection.secondSelected = -1;
+            SP->selection.waiting = 0;
+            return;
+        }
+
+        tCard* c1 = &board->cards[SP->selection.firstSelected];
+        tCard* c2 = &board->cards[SP->selection.secondSelected];
 
         if(c1->id == c2->id)
         {
             c1->isMatched = 1;
             c2->isMatched = 1;
+            
+            // game->players[0].score++;
 
-            // game->players[game->currentPlayer].score++; //cambiar
-
-            // sumar SOLO cuando hay par (100 puntos por par)
+            // sumar SOLO cuando hay match (regla 100 por par)
             gameOnPairResolved(game, 1); // match
 
-            // guardamos el score del jugador actual para que el render refresque el label
-            int p = game->currentPlayer;
-            MP->scoreValue[p] = game->players[p].score;
+            // Copiamos el score para que Render refresque el label
+            SP->scoreValue = game->players[0].score;
 
-            MP->selection.firstSelected = -1;
-            MP->selection.secondSelected = -1;
+            SP->selection.firstSelected = -1;
+            SP->selection.secondSelected = -1;
+            
+            // sound_play(c2->sound_Matched,0);
 
-            // Null-check sonido
+            // Null-check
             if(c2->sound_Matched) sound_play(c2->sound_Matched, 0);
         }
         else
         {
-            MP->selection.waiting = 1;
-            MP->selection.waitStart = currentTime;
+            SP->selection.waiting = 1;
+            SP->selection.waitStart = currentTime;
 
+            // estaba MAL, porque 1 = match
+            // gameOnPairResolved(game, 1);
+
+            // no match
             gameOnPairResolved(game, 0);
 
-            // Se puede actualizar scoreValue del jugador (no cambia),
-            // pero no hace falta. Igual lo dejo comentado por si lo quieren:
-            /*{
-                int p = game->currentPlayer;
-                MP->scoreValue[p] = game->players[p].score;
-            }*/
+            // Antes tenia esto aca
+            // SP->scoreValue = game->players[0].score;
+            // (No hace falta, porque en no-match el score no cambia. Lo dejo comentado por si quieren.)
+            // SP->scoreValue = game->players[0].score;
 
-            // Null-check sonido
+            // sound_play(c2->sound_Not_Matched,0);
+
+            // Null-check
             if(c2->sound_Not_Matched) sound_play(c2->sound_Not_Matched, 0);
         }
     }
@@ -1350,5 +1338,6 @@ void playMPDestroy(tPlayMPScreen* MP, tGame* game)
         }
     }
 }
+
 
 
