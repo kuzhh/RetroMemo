@@ -111,8 +111,8 @@ void boardRender(SDL_Renderer* renderer, tBoard* board, tCardSet* card)
 
 int boardGetCardAt(tBoard* board, int mouseX, int mouseY)
 {
-    if(!board->cards)
-        return ERR;
+    if(!board || !board->cards)//evita errores
+    return -1; //evita errores
 
     int hSpacing = 30;
     int wSpacing = 25;
