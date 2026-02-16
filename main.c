@@ -81,6 +81,8 @@ int main(int argc, char *argv[]) {
   // pantalla a mostrar
   ScreenType currentScreen = SCREEN_MAIN;
   ScreenType previousScreen = SCREEN_MAIN;
+  ScreenType configSource =
+      SCREEN_MAIN; // Track if we came from Single or Multi config
   // Estado a modificar con eventos
   bool running = true;
 
@@ -143,12 +145,9 @@ int main(int argc, char *argv[]) {
         playSPExitDestroy(&playSPExit);
         playSPExitInit(&playSPExit, screen.renderer, &assets, &game, &board,
                        &setCard, previousScreen);
-        previousScreen = currentScreen;
       }
 
-      if (currentScreen == SCREEN_GAME_LOW ||
-          currentScreen == SCREEN_GAME_MID || currentScreen == SCREEN_GAME_HIGH)
-        previousScreen = currentScreen;
+      previousScreen = currentScreen;
     }
 
     switch (currentScreen) {
@@ -165,7 +164,7 @@ int main(int argc, char *argv[]) {
       multiPlayerRender(screen.renderer, &multiPlayer, &assets, &input);
       break;
     case SCREEN_SET_CARDS:
-      setCardMenuUpdate(&setCard, &input, &currentScreen, previousScreen);
+      setCardMenuUpdate(&setCard, &input, &currentScreen, configSource);
       setCardMenuRender(screen.renderer, &setCard, &assets);
       break;
     case SCREEN_SET_DIFFICULT:
@@ -226,9 +225,10 @@ int main(int argc, char *argv[]) {
     }
 
     if (currentScreen == SCREEN_SET_CARDS &&
-        lastScreenState != SCREEN_SET_CARDS) {
-      previousScreen = lastScreenState;
-      printf("DEBUG: Guardado previousScreen ID: %d\n", previousScreen);
+        (lastScreenState == SCREEN_CONFIG_SINGLE ||
+         lastScreenState == SCREEN_CONFIG_MULTI)) {
+      configSource = lastScreenState;
+      printf("DEBUG: Guardado configSource ID: %d\n", configSource);
     }
 
     SDL_RenderPresent(screen.renderer);

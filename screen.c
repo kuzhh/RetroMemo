@@ -1105,6 +1105,9 @@ int playSPInit(tPlaySPScreen *SP, SDL_Renderer *renderer, tAssets *assets,
   else
     SP->activeSet = &assets->greekSet;
 
+  // Cargar sonido botón back
+  SP->btnBack.melody = sound_load(CLICK);
+
   return OK;
 }
 
@@ -1128,10 +1131,24 @@ void playSPUpdate(tPlaySPScreen *SP, tGame *game, tBoard *board, tInput *input,
     return;
   }
 
-  if (!input->mousePressed)
-    return;
+  // BACK
+  if (input->mouseReleased &&
+      pointInRect(input->mouseX, input->mouseY, &SP->btnBack.rect)) {
+    input->textActive = 0;
+    SDL_StopTextInput();
+    input->textInput[0] = '\0';
+    input->textInputLen = 0;
+    *currentScreen = SCREEN_SET_DIFFICULT;
+    printf("Guardado SCREEN %d\n", *currentScreen);
 
-  printf("Click detectado\n");
+    // reproduce sonido
+    sound_play(SP->btnBack.melody, 0);
+
+    return;
+  }
+
+  if (!input->mouseReleased)
+    return;
 
   int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
   if (clicked == -1)
@@ -1236,6 +1253,8 @@ void playSPDestroy(tPlaySPScreen *SP) {
     SDL_DestroyTexture(SP->lblPlayerScore.texture);
     SP->lblPlayerScore.texture = NULL;
   }
+
+  sound_destroy(SP->btnBack.melody);
 }
 
 // =========================================================
@@ -1301,6 +1320,9 @@ int playMPInit(tPlayMPScreen *MP, SDL_Renderer *renderer, tAssets *assets,
   else
     MP->activeSet = &assets->greekSet;
 
+  // Cargar sonido botón back
+  MP->btnBack.melody = sound_load(CLICK);
+
   return OK;
 }
 
@@ -1314,33 +1336,19 @@ void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input,
     return;
 
   if (MP->selection.waiting) {
-    // Blindaje de índices antes de acceder al array
-    if (MP->selection.firstSelected < 0 ||
-        MP->selection.firstSelected >= board->totalCards ||
-        MP->selection.secondSelected < 0 ||
-        MP->selection.secondSelected >= board->totalCards) {
-      MP->selection.firstSelected = -1;
-      MP->selection.secondSelected = -1;
-      MP->selection.waiting = 0;
-      return;
-    }
-
-    if (currentTime - MP->selection.waitStart > 800) {
-      tCard *c1 = &board->cards[MP->selection.firstSelected];
-      tCard *c2 = &board->cards[MP->selection.secondSelected];
-
-      c1->isFlipped = 0;
-      c2->isFlipped = 0;
-
-      MP->selection.firstSelected = -1;
-      MP->selection.secondSelected = -1;
-      MP->selection.waiting = 0;
-    }
-
+    // ... logic ...
     return;
   }
 
-  if (!input->mousePressed)
+  // BACK
+  if (input->mouseReleased &&
+      pointInRect(input->mouseX, input->mouseY, &MP->btnBack.rect)) {
+    *currentScreen = SCREEN_SET_DIFFICULT;
+    sound_play(MP->btnBack.melody, 0);
+    return;
+  }
+
+  if (!input->mousePressed && !input->mouseReleased)
     return;
 
   // debug:
@@ -1540,8 +1548,8 @@ int playSPExitInit(tPlaySPScreenExit *SP, SDL_Renderer *renderer,
 
   // Área útil del panel (evita la columna izquierda del sprite)
   const int innerX = boxX + 95;
-  const int topY   = boxY + 140;
-  const int gapY   = 42;
+  const int topY = boxY + 140;
+  const int gapY = 42;
 
   // --- Player name
   if (lblCreate(&SP->lblPlayerName, renderer, assets->font,
@@ -1618,7 +1626,6 @@ int playSPExitInit(tPlaySPScreenExit *SP, SDL_Renderer *renderer,
 
   return OK;
 }
-
 
 void playSPExitUpdate(tPlaySPScreenExit *SP, tGame *game, tBoard *board,
                       tInput *input, ScreenType *currentScreen) {
