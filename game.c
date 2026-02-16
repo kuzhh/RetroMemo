@@ -8,13 +8,13 @@
 /*
 #include "input.h"
 #include "assets.h"
-#include "screen.h"      
-#include <string.h>     
-#include <stdlib.h>      
+#include "screen.h"
+#include <string.h>
+#include <stdlib.h>
 #include <time.h> // biblios que podriamos agregar, por las dudas lo dejo asi */
 
 
-/*FUNCION PARA MEZCLAR CARTAS (capaz sirve) 
+/*FUNCION PARA MEZCLAR CARTAS (capaz sirve)
 static void mezclar(int* a, int n)
 {
     for(int i = 0; i < n - 1; i++)// recorro
@@ -86,33 +86,28 @@ void gameOnPairResolved(tGame* game, int isMatch)
     if(!game || game->playerCount <= 0)
         return;
 
-    // (Opcional) si estamos contando movimientos, incrementar
-    // cada vez que se resuelve una jugada (2 cartas)
-    game->players[game->currentPlayer].moves++;
+    /* MOVIMIENTOS -> Cuenta intentos (cada comparación de 2 cartas).
+        Lo dejamos comentado por ahora */
+    // game->players[game->currentPlayer].moves++;
 
     if(isMatch)
     {
+        // Incrementa pares encontrados
         game->players[game->currentPlayer].pairsFound++;
 
-        /* score representa cantidad de pares encontrados.
-           Si después quieren “10 puntos por par”, se cambia acá
-           score = pairsFound * 10;
-        */
-        game->players[game->currentPlayer].score =
-            game->players[game->currentPlayer].pairsFound;
+        //SCORE:Ahora cada par vale 100 puntos.
 
-        // El jugador sigue jugando
+        game->players[game->currentPlayer].score =
+            game->players[game->currentPlayer].pairsFound * 100;
+
+        // El jugador continúa su turno
     }
     else
     {
-        // Cambia turno solo si son 2 jugadores
+        // Si falla, cambia turno (solo en MP)
         if(game->playerCount == 2)
             game->currentPlayer = 1 - game->currentPlayer;
     }
-
-    /* La lógica de ganador NO va acá.
-       El ganador se calcula cuando termina el juego (cuando ya están todos los pares).
-       Eso lo vamos a hacer en la pantalla WINNER o en una función aparte. */
 }
 
 /*  Determina el ganador al final (modo 2 jugadores)
