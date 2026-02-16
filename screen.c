@@ -250,7 +250,7 @@ void mainMenuDestroy(tMainMenu * menu) {
 }
 
 // =========================================================
-// SINGLE PLAYER SCREEN
+// SINGLE PLAYER SCREEN -- INPUT
 // =========================================================
 
 int singlePlayerInit(tSinglePlayerScreen * single, SDL_Renderer * renderer,
@@ -461,7 +461,7 @@ void singlePlayerDestroy(tSinglePlayerScreen * single) {
 }
 
 // =========================================================
-// MULTIPLAYER SCREEN
+// MULTIPLAYER SCREEN -- INPUT
 // =========================================================
 
 int multiPlayerInit(tMultiplayerScreen * multi, SDL_Renderer * renderer,
@@ -805,7 +805,7 @@ void multiPlayerDestroy(tMultiplayerScreen * multi) {
 }
 
 // =========================================================
-// SETCARD MENU
+// SETCARD MENU -- CHOOSE
 // =========================================================
 
 int setCardMenuInit(tSetCardMenu * menu, SDL_Renderer * renderer,
@@ -956,7 +956,7 @@ void setCardMenuDestroy(tSetCardMenu * menu) {
 }
 
 // =========================================================
-// DIFF MENU
+// DIFF MENU -- CHOOSE
 // =========================================================
 
 int setDiffMenuInit(tSetDiffMenu * menu, SDL_Renderer * renderer,
@@ -1442,103 +1442,102 @@ void playMPUpdate(tPlayMPScreen * MP, tGame * game, tBoard * board, tInput * inp
     if (!MP || !game || !board || !board -> cards || !input)
         return;
 
-    if (MP -> selection.waiting) {
-        if (currentTime - MP -> selection.waitStart > 800) {
-            tCard * c1 = & board -> cards[MP -> selection.firstSelected];
-            tCard * c2 = & board -> cards[MP -> selection.secondSelected];
+    if (MP->selection.waiting) {
+        if (currentTime - MP->selection.waitStart > 800) {
+            tCard * c1 = & board->cards[MP->selection.firstSelected];
+            tCard * c2 = & board->cards[MP->selection.secondSelected];
 
-            c1 -> isFlipped = 0;
-            c2 -> isFlipped = 0;
+            c1->isFlipped = 0;
+            c2->isFlipped = 0;
 
-            MP -> selection.firstSelected = -1;
-            MP -> selection.secondSelected = -1;
-            MP -> selection.waiting = 0;
+            MP->selection.firstSelected = -1;
+            MP->selection.secondSelected = -1;
+            MP->selection.waiting = 0;
         }
         return;
     }
 
     // BACK
-    if (input -> mouseReleased &&
-        pointInRect(input -> mouseX, input -> mouseY, & MP -> btnBack.rect)) {
-        * currentScreen = SCREEN_SET_DIFFICULT;
-        sound_play(MP -> btnBack.melody, 0);
+    if (input->mouseReleased &&
+        pointInRect(input->mouseX, input->mouseY, &MP->btnBack.rect)) {
+        *currentScreen = SCREEN_SET_DIFFICULT;
+        sound_play(MP->btnBack.melody, 0);
         return;
     }
 
-    if (!input -> mousePressed && !input -> mouseReleased)
+    if (!input->mousePressed && !input->mouseReleased)
         return;
 
     // debug:
     // printf("Click detectado\n");
 
-    int clicked = boardGetCardAt(board, input -> mouseX, input -> mouseY);
+    int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
 
     // validar rango completo
-    if (clicked < 0 || clicked >= board -> totalCards)
+    if (clicked < 0 || clicked >= board->totalCards)
         return;
 
-    tCard * card = & board -> cards[clicked];
+    tCard* card = &board->cards[clicked];
 
-    if (card -> isFlipped || card -> isMatched)
+    if (card->isFlipped || card->isMatched)
         return;
 
-    card -> isFlipped = 1;
+    card->isFlipped = 1;
 
-    if (MP -> selection.firstSelected == -1) {
-        MP -> selection.firstSelected = clicked;
+    if (MP->selection.firstSelected == -1) {
+        MP->selection.firstSelected = clicked;
         return;
-    } else if (MP -> selection.secondSelected == -1) {
-        if (clicked == MP -> selection.firstSelected)
+    } else if (MP->selection.secondSelected == -1) {
+        if (clicked == MP->selection.firstSelected)
             return;
 
-        MP -> selection.secondSelected = clicked;
+        MP->selection.secondSelected = clicked;
 
         // blindaje extra por seguridad
-        if (MP -> selection.firstSelected < 0 ||
-            MP -> selection.firstSelected >= board -> totalCards ||
-            MP -> selection.secondSelected < 0 ||
-            MP -> selection.secondSelected >= board -> totalCards) {
-            MP -> selection.firstSelected = -1;
-            MP -> selection.secondSelected = -1;
-            MP -> selection.waiting = 0;
+        if (MP->selection.firstSelected < 0 ||
+            MP->selection.firstSelected >= board -> totalCards ||
+            MP->selection.secondSelected < 0 ||
+            MP->selection.secondSelected >= board -> totalCards) {
+            MP->selection.firstSelected = -1;
+            MP->selection.secondSelected = -1;
+            MP->selection.waiting = 0;
             return;
         }
 
-        tCard * c1 = & board -> cards[MP -> selection.firstSelected];
-        tCard * c2 = & board -> cards[MP -> selection.secondSelected];
+        tCard* c1 = &board->cards[MP->selection.firstSelected];
+        tCard* c2 = &board->cards[MP->selection.secondSelected];
 
         int p = MP->lastPlayer;
         if (p < 0 || p >= game->playerCount) p = 0;
 
-        if (c1 -> id == c2 -> id) {
-            c1 -> isMatched = 1;
-            c2 -> isMatched = 1;
-
-            // game->players[0].score++;
+        if (c1->id == c2->id) {
+            c1->isMatched = 1;
+            c2->isMatched = 1;
 
             // sumar SOLO cuando hay match (regla 100 por par)
             gameOnPairResolved(game, 1); // match
 
             // Copiamos el score para que Render refresque el label
-            MP -> scoreValue[p] = game -> players[p].score;
+            MP->scoreValue[p] = game->players[p].score;
 
-            MP -> selection.firstSelected = -1;
-            MP -> selection.secondSelected = -1;
+            MP->selection.firstSelected = -1;
+            MP->selection.secondSelected = -1;
 
             // sound_play(c2->sound_Matched,0);
 
             // Null-check
-            if (c2 -> sound_Matched)
-                sound_play(c2 -> sound_Matched, 0);
+            if (c2->sound_Matched)
+                sound_play(c2->sound_Matched, 0);
         } else {
-            MP -> selection.waiting = 1;
-            MP -> selection.waitStart = currentTime;
-
-            // estaba MAL, porque 1 = match
-            // gameOnPairResolved(game, 1);
+            MP->selection.waiting = 1;
+            MP->selection.waitStart = currentTime;
 
             // no match
             gameOnPairResolved(game, 0);
+
+            // Copiamos el score para que Render refresque el label 
+            //(ahora hay penalty)
+            MP->scoreValue[p] = game->players[p].score;
 
             // Antes tenia esto aca
             // SP->scoreValue = game->players[0].score;
@@ -1548,22 +1547,21 @@ void playMPUpdate(tPlayMPScreen * MP, tGame * game, tBoard * board, tInput * inp
             // sound_play(c2->sound_Not_Matched,0);
 
             // Null-check
-            if (c2 -> sound_Not_Matched)
-                sound_play(c2 -> sound_Not_Matched, 0);
+            if (c2->sound_Not_Matched)
+                sound_play(c2->sound_Not_Matched, 0);
 
             // CAMBIO DE TURNO
             MP->lastPlayer = 1 - MP->lastPlayer;
         }
     }
 
-    if (((game -> players[0].pairsFound + game -> players[1].pairsFound) == 6 &&
-            game -> totalPairs == 6) ||
-        ((game -> players[0].pairsFound + game -> players[1].pairsFound) == 8 &&
-            game -> totalPairs == 8) ||
-        ((game -> players[0].pairsFound + game -> players[1].pairsFound) == 10 &&
-            game -> totalPairs == 10))
-        *
-        currentScreen = SCREEN_GAMEOVER;
+    if (((game->players[0].pairsFound + game->players[1].pairsFound) == 6 &&
+            game->totalPairs == 6) ||
+        ((game->players[0].pairsFound + game->players[1].pairsFound) == 8 &&
+            game->totalPairs == 8) ||
+        ((game->players[0].pairsFound + game->players[1].pairsFound) == 10 &&
+            game->totalPairs == 10))
+        *currentScreen = SCREEN_GAMEOVER;
 
     return;
 }
@@ -1697,7 +1695,7 @@ void playMPDestroy(tPlayMPScreen * MP, tGame * game) {
 }
 
 // =========================================================
-// GAME ENDED -- SP PLAYING
+// GAME ENDED -- SP END PLAYING
 // =========================================================
 
 int playSPExitInit(tPlaySPScreenExit * SP, SDL_Renderer * renderer,
@@ -1966,7 +1964,7 @@ void playSPExitDestroy(tPlaySPScreenExit * SP) {
 }
 
 // =========================================================
-// GAME ENDED -- MP PLAYING
+// GAME ENDED -- MP END PLAYING
 // =========================================================
 
 int playMPExitInit(tPlayMPScreenExit * MP, SDL_Renderer * renderer,

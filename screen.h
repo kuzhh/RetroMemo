@@ -212,10 +212,12 @@ int screenInitialize(tScreen *, const char *, int, int);
 void screenShutdown(tScreen *);
 int lblCreate(tLabel *, SDL_Renderer *, TTF_Font *, const char *, SDL_Color);
 
+
 int mainMenuInit(tMainMenu *, SDL_Renderer *, tAssets *);
 void mainMenuUpdate(tMainMenu *, tInput *, ScreenType *, tGame *);
 void mainMenuRender(SDL_Renderer *, tMainMenu *, tAssets *);
 void mainMenuDestroy(tMainMenu *);
+
 
 int singlePlayerInit(tSinglePlayerScreen *, SDL_Renderer *, tAssets *);
 void singlePlayerUpdate(tSinglePlayerScreen *, tInput *, ScreenType *, tGame *);
@@ -223,27 +225,32 @@ void singlePlayerRender(SDL_Renderer *, tSinglePlayerScreen *, tAssets *,
                         tInput *);
 void singlePlayerDestroy(tSinglePlayerScreen *);
 
+
 int multiPlayerInit(tMultiplayerScreen *, SDL_Renderer *, tAssets *);
 void multiPlayerUpdate(tMultiplayerScreen *, tInput *, ScreenType *, tGame *);
 void multiPlayerRender(SDL_Renderer *, tMultiplayerScreen *, tAssets *,
                        tInput *);
 void multiPlayerDestroy(tMultiplayerScreen *);
 
+
 int setCardMenuInit(tSetCardMenu *, SDL_Renderer *, tAssets *);
 void setCardMenuUpdate(tSetCardMenu *, tInput *, ScreenType *, ScreenType);
 void setCardMenuRender(SDL_Renderer *, tSetCardMenu *, tAssets *);
 void setCardMenuDestroy(tSetCardMenu *);
+
 
 int setDiffMenuInit(tSetDiffMenu *, SDL_Renderer *, tAssets *);
 void setDiffMenuUpdate(tSetDiffMenu *, tInput *, ScreenType *);
 void setDiffMenuRender(SDL_Renderer *, tSetDiffMenu *, tAssets *);
 void setDiffMenuDestroy(tSetDiffMenu *);
 
+
 int playSPInit(tPlaySPScreen *, SDL_Renderer *, tAssets *, tGame *, tBoard *,
                tSetCardMenu *);
 void playSPUpdate(tPlaySPScreen *, tGame *, tBoard *, tInput *, ScreenType *);
 void playSPRender(SDL_Renderer *, tPlaySPScreen *, tAssets *, tBoard *, tInput *);
 void playSPDestroy(tPlaySPScreen *);
+
 
 int playMPInit(tPlayMPScreen *, SDL_Renderer *, tAssets *, tGame *, tBoard *,
                tSetCardMenu *);
@@ -253,12 +260,14 @@ void playMPRender(SDL_Renderer *, tPlayMPScreen *, tAssets *, tBoard *,
                   tGame *, tInput *);
 void playMPDestroy(tPlayMPScreen *, tGame *);
 
+
 int playSPExitInit(tPlaySPScreenExit *, SDL_Renderer *, tAssets *, tGame *,
                    tBoard *, tSetCardMenu *, ScreenType);
 void playSPExitUpdate(tPlaySPScreenExit *, tGame *, tBoard *, tInput *,
                       ScreenType *);
 void playSPExitRender(SDL_Renderer *, tPlaySPScreenExit *, tAssets *, tBoard *);
 void playSPExitDestroy(tPlaySPScreenExit *);
+
 
 int playMPExitInit(tPlayMPScreenExit *, SDL_Renderer *, tAssets *, tGame *,
                    tBoard *, tSetCardMenu *, ScreenType);

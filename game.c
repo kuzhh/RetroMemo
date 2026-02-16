@@ -46,22 +46,23 @@ int gameInit(tGame * game, tBoard * board, int playerCount) {
     if (playerCount > MAX_PLAYERS)
         return ERR;
 
-    game -> state = STATE_PLAYING;
-    game -> isRunning = 1;
+    game->state = STATE_PLAYING;
+    game->isRunning = 1;
 
-    game -> playerCount = playerCount;
-    game -> currentPlayer = 0;
+    game->playerCount = playerCount;
+    game->currentPlayer = 0;
 
-    game -> startTime = 0;
-    game -> turnStartTime = 0;
+    game->startTime = 0;
+    game->turnStartTime = 0;
 
     for (i = 0; i < playerCount; i++) {
-        game -> players[i].score = 0;
-        game -> players[i].pairsFound = 0; // evito basura ADD
-        game -> players[i].moves = 0; // idem ADD
+        game->players[i].score = 0;
+        game->players[i].pairsFound = 0; // evito basura ADD
+        game->players[i].moves = 0; // idem ADD
+        game->players[i].streak = 0; //idem
     }
 
-    game -> totalPairs = board -> totalCards / 2;
+    game->totalPairs = board->totalCards / 2;
 
     return OK;
 }
@@ -80,26 +81,54 @@ int gameInit(tGame * game, tBoard * board, int playerCount) {
         * si hay 2 jugadores, cambia turno (0 <-> 1)
 */
 void gameOnPairResolved(tGame * game, int isMatch) {
-    if (!game || game -> playerCount <= 0)
+    if (!game || game->playerCount <= 0)
         return;
 
     // MOVIMIENTOS -> Cuenta intentos (cada comparación de 2 cartas).
-    game -> players[game -> currentPlayer].moves++;
+    game->players[game->currentPlayer].moves++;
 
     if (isMatch) {
         // Incrementa pares encontrados
-        game -> players[game -> currentPlayer].pairsFound++;
+        game->players[game->currentPlayer].pairsFound++;
 
-        // SCORE:Ahora cada par vale 100 puntos.
+        //Incrementa racha
+        game->players[game->currentPlayer].streak++;
 
-        game -> players[game -> currentPlayer].score =
-            game -> players[game -> currentPlayer].pairsFound * 100;
+        // SCORE: Ahora cada par vale 100 puntos.
+        int basePoints = 100;
+
+        //Si tiene racha, incremento
+        if(game->players[game->currentPlayer].streak >= 2)
+        {
+            basePoints = (int)(basePoints * 1.75);
+        }
+
+        /*
+        Antes estaba:
+        game->players[game->currentPlayer].score =
+            game->players[game->currentPlayer].pairsFound * 100;
+        Al tener el score inicializado en 0 (ver gameInit()) y
+        los puntos base iniciados en basePoint (ver arriba)
+        se reemplaza por lo siguiente:
+        */
+        game->players[game->currentPlayer].score += basePoints;
+        /*pd: si es racha se suma con incremento; si no es racha
+        suma sólo los pts base*/
 
         // El jugador continúa su turno
     } else {
-        // Si falla, cambia turno (solo en MP)
-        if (game -> playerCount == 2)
-            game -> currentPlayer = 1 - game -> currentPlayer;
+        //Si falla, no tiene más racha
+        game->players[game->currentPlayer].streak = 0;
+
+        //y se le aplica penalización
+        game->players[game->currentPlayer].score -= 10;
+        //pero si score < 0, lo deja en 0
+        if(game->players[game->currentPlayer].score < 0)
+            game->players[game->currentPlayer].score = 0;
+
+        //cambia turno (solo en MP)
+        if (game->playerCount == 2)
+            game->currentPlayer = 1 - game->currentPlayer;
     }
 }
 

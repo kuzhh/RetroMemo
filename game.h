@@ -20,6 +20,7 @@ typedef struct
     int moves;
     int score;
     char namePlayer[MAX_TEXT_INPUT];
+    int streak;
 } tPlayer;
 
 typedef struct
