@@ -1240,6 +1240,7 @@ void playSPUpdate(tPlaySPScreen * SP, tGame * game, tBoard * board, tInput * inp
     if (!input -> mouseReleased)
         return;
 
+    // Game loop
     int clicked = boardGetCardAt(board, input -> mouseX, input -> mouseY);
     if (clicked == -1)
         return;
@@ -1295,7 +1296,7 @@ void playSPUpdate(tPlaySPScreen * SP, tGame * game, tBoard * board, tInput * inp
 }
 
 void playSPRender(SDL_Renderer * renderer, tPlaySPScreen * SP, tAssets * assets,
-    tBoard * board) {
+    tBoard * board, tInput * input) {
     if (SP -> scoreRendered != SP -> scoreValue) {
         SP -> scoreRendered = SP -> scoreValue;
 
@@ -1327,8 +1328,15 @@ void playSPRender(SDL_Renderer * renderer, tPlaySPScreen * SP, tAssets * assets,
         SP -> lblPlayerName.rect);
     SDL_RenderCopy(renderer, SP -> lblPlayerScore.texture, NULL, &
         SP -> lblPlayerScore.rect);
+    
+    // ===== Hover index (solo si hay input)
+    int hovered = -1;
+    if (input) {
+        hovered = boardGetCardAt(board, input->mouseX, input->mouseY);
+    }
 
-    boardRender(renderer, board, SP -> activeSet);
+    // Render tablero con hover
+    boardRenderHover(renderer, board, SP->activeSet, hovered);
 }
 
 void playSPDestroy(tPlaySPScreen * SP) {
@@ -1561,7 +1569,7 @@ void playMPUpdate(tPlayMPScreen * MP, tGame * game, tBoard * board, tInput * inp
 }
 
 void playMPRender(SDL_Renderer *renderer, tPlayMPScreen *MP, tAssets *assets,
-                  tBoard *board, tGame *game) {
+                  tBoard *board, tGame *game, tInput * input) {
 
     SDL_RenderCopy(renderer, assets->backgroundGame, NULL, NULL);
     SDL_RenderCopy(renderer, assets->back, NULL, &MP->btnBack.rect);
@@ -1661,7 +1669,14 @@ void playMPRender(SDL_Renderer *renderer, tPlayMPScreen *MP, tAssets *assets,
                     &MP->lblPlayerScore[i].rect);
     }
 
-    boardRender(renderer, board, MP->activeSet);
+    // ===== Hover index (solo si hay input)
+    int hovered = -1;
+    if (input) {
+        hovered = boardGetCardAt(board, input->mouseX, input->mouseY);
+    }
+
+    // Render tablero con hover
+    boardRenderHover(renderer, board, MP->activeSet, hovered);
 }
 
 void playMPDestroy(tPlayMPScreen * MP, tGame * game) {

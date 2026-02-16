@@ -242,7 +242,7 @@ void setDiffMenuDestroy(tSetDiffMenu *);
 int playSPInit(tPlaySPScreen *, SDL_Renderer *, tAssets *, tGame *, tBoard *,
                tSetCardMenu *);
 void playSPUpdate(tPlaySPScreen *, tGame *, tBoard *, tInput *, ScreenType *);
-void playSPRender(SDL_Renderer *, tPlaySPScreen *, tAssets *, tBoard *);
+void playSPRender(SDL_Renderer *, tPlaySPScreen *, tAssets *, tBoard *, tInput *);
 void playSPDestroy(tPlaySPScreen *);
 
 int playMPInit(tPlayMPScreen *, SDL_Renderer *, tAssets *, tGame *, tBoard *,
@@ -250,7 +250,7 @@ int playMPInit(tPlayMPScreen *, SDL_Renderer *, tAssets *, tGame *, tBoard *,
 void playMPUpdate(tPlayMPScreen *, tGame *, tBoard *, tInput *, SDL_Renderer *,
                   tAssets *, ScreenType *);
 void playMPRender(SDL_Renderer *, tPlayMPScreen *, tAssets *, tBoard *,
-                  tGame *);
+                  tGame *, tInput *);
 void playMPDestroy(tPlayMPScreen *, tGame *);
 
 int playSPExitInit(tPlaySPScreenExit *, SDL_Renderer *, tAssets *, tGame *,

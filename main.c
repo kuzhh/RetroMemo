@@ -192,11 +192,11 @@ int main(int argc, char *argv[]) {
 
             if (game.playerCount == 1) {
                 playSPUpdate(&playSP, &game, &board, &input, &currentScreen);
-                playSPRender(screen.renderer, &playSP, &assets, &board);
+                playSPRender(screen.renderer, &playSP, &assets, &board, &input);
             } else if (game.playerCount == 2) {
                 playMPUpdate(&playMP, &game, &board, &input, screen.renderer, &assets,
                             &currentScreen);
-                playMPRender(screen.renderer, &playMP, &assets, &board, &game);
+                playMPRender(screen.renderer, &playMP, &assets, &board, &game, &input);
             }
         break;
 
@@ -205,11 +205,11 @@ int main(int argc, char *argv[]) {
 
             if (game.playerCount == 1) {
                 playSPUpdate(&playSP, &game, &board, &input, &currentScreen);
-                playSPRender(screen.renderer, &playSP, &assets, &board);
+                playSPRender(screen.renderer, &playSP, &assets, &board, &input);
             } else if (game.playerCount == 2) {
                 playMPUpdate(&playMP, &game, &board, &input, screen.renderer, &assets,
                             &currentScreen);
-                playMPRender(screen.renderer, &playMP, &assets, &board, &game);
+                playMPRender(screen.renderer, &playMP, &assets, &board, &game, &input);
             }
         break;
 
@@ -218,11 +218,11 @@ int main(int argc, char *argv[]) {
 
             if (game.playerCount == 1) {
                 playSPUpdate(&playSP, &game, &board, &input, &currentScreen);
-                playSPRender(screen.renderer, &playSP, &assets, &board);
+                playSPRender(screen.renderer, &playSP, &assets, &board, &input);
             } else if (game.playerCount == 2) {
                 playMPUpdate(&playMP, &game, &board, &input, screen.renderer, &assets,
                             &currentScreen);
-                playMPRender(screen.renderer, &playMP, &assets, &board, &game);
+                playMPRender(screen.renderer, &playMP, &assets, &board, &game, &input);
             }
         break;
 

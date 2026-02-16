@@ -60,4 +60,6 @@ void boardRender(SDL_Renderer*, tBoard*, tCardSet*);
 
 int boardGetCardAt(tBoard*, int, int);
 
+void boardRenderHover(SDL_Renderer *, tBoard *, tCardSet *, int );
+
 #endif // BOARD_H_INCLUDED
