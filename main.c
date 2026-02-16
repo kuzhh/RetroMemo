@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
                     playMPInit(&playMP, screen.renderer, &assets, &game, &board, &setCard);
             }
 
-            previousScreen = currentScreen;
+            //previousScreen = currentScreen; -> Desactivado ya que provoca que no pueda volver atras desde el setCARD.
         }
 
         switch(currentScreen)
@@ -222,7 +222,8 @@ int main(int argc, char* argv[])
             break;
         }
 
-        if (currentScreen == SCREEN_SET_CARDS && lastScreenState != SCREEN_SET_CARDS) {
+        if (currentScreen == SCREEN_SET_CARDS && lastScreenState != SCREEN_SET_CARDS) 
+        {
             previousScreen = lastScreenState;
             printf("DEBUG: Guardado previousScreen ID: %d\n", previousScreen);
         }
