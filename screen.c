@@ -1278,7 +1278,6 @@ void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, 
     }
 }
 
-
 void playMPRender(SDL_Renderer* renderer, tPlayMPScreen* MP, tAssets* assets, tBoard* board, tGame* game)
 {
     SDL_RenderCopy(renderer, assets->background, NULL, NULL);

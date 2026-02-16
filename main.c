@@ -139,7 +139,9 @@ int main(int argc, char* argv[])
                     playMPInit(&playMP, screen.renderer, &assets, &game, &board, &setCard);
             }
 
-            //previousScreen = currentScreen; -> Desactivado ya que provoca que no pueda volver atras desde el setCARD.
+            if(currentScreen == SCREEN_GAME_LOW || currentScreen == SCREEN_GAME_MID ||
+                currentScreen == SCREEN_GAME_HIGH)
+                previousScreen = currentScreen;
         }
 
         switch(currentScreen)
