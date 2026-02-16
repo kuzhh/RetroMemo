@@ -118,6 +118,9 @@ typedef struct{
 
     tSelection selection;
     tCardSet* activeSet;
+
+    int scoreValue;        // score “actual” copiado desde game en Update
+    int scoreRendered;     // último score que se renderizó (para detectar cambios)
 }tPlaySPScreen;
 
 typedef struct{
@@ -131,6 +134,8 @@ typedef struct{
     tCardSet* activeSet;
 
     int lastPlayer;
+    int scoreValue[2];
+    int scoreRendered[2];
 }tPlayMPScreen;
 
 typedef enum {
