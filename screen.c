@@ -2,7 +2,7 @@
 #include "board.h"
 #include <string.h>
 
-#define CLICK "snd/Click.wav"
+#define CLICK "snd/Click.mp3"
 #define MUSIC "snd/doom.mp3"
 
 // =========================================================
@@ -1263,3 +1263,4 @@ void playMPDestroy(tPlayMPScreen* MP, tGame* game)
         }
     }
 }
+
