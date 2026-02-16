@@ -136,6 +136,7 @@ typedef struct {
     tSelection selection;
     tCardSet *activeSet;
 
+    int activePlayer;   // 0 = player1, 1 = player2
     int lastPlayer;
     int scoreValue[2];
     int scoreRendered[2];

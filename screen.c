@@ -1357,80 +1357,73 @@ void playSPDestroy(tPlaySPScreen * SP) {
 // GAME IN COURSE -- MP PLAYING
 // =========================================================
 
-int playMPInit(tPlayMPScreen * MP, SDL_Renderer * renderer, tAssets * assets,
-    tGame * game, tBoard * board, tSetCardMenu * setCardMenu) {
-    MP -> btnBack.rect = (SDL_Rect) {
-        10,
-        680,
-        80,
-        80
-    };
-    MP -> btnBack.state = BTN_NORMAL;
+int playMPInit(tPlayMPScreen *MP, SDL_Renderer *renderer, tAssets *assets,
+               tGame *game, tBoard *board, tSetCardMenu *setCardMenu) {
 
-    SDL_Color white = {
-        255,
-        255,
-        255,
-        255
-    };
+    MP->btnBack.rect = (SDL_Rect){10, 680, 80, 80};
+    MP->btnBack.state = BTN_NORMAL;
 
-    /////////////////////player 1//////////////////////////////
-    if (lblCreate( & MP -> lblPlayerName[0], renderer, assets -> font,
-            game -> players[0].namePlayer, white) != OK)
+    SDL_Color white = {255,255,255,255};
+
+    // ===== Turno inicial (Player 1 empieza) =====
+    MP->lastPlayer = 0;
+
+    // ===== Player 1 =====
+    if (lblCreate(&MP->lblPlayerName[0], renderer, assets->font,
+                game->players[0].namePlayer, white) != OK)
         return SDL_ERR;
 
-    MP -> lblPlayerName[0].rect.x = 10;
-    MP -> lblPlayerName[0].rect.y = 10;
+    MP->lblPlayerName[0].rect.x = 10;
+    MP->lblPlayerName[0].rect.y = 10;
 
     char bufferScore[32];
-    snprintf(bufferScore, sizeof(bufferScore), "%d", game -> players[0].score);
+    snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[0].score);
 
-    if (lblCreate( & MP -> lblPlayerScore[0], renderer, assets -> font, bufferScore,
-            white) != OK)
+    if (lblCreate(&MP->lblPlayerScore[0], renderer, assets->font, bufferScore, white) != OK)
         return SDL_ERR;
 
-    MP -> lblPlayerScore[0].rect.x = 10;
-    MP -> lblPlayerScore[0].rect.y = 40;
-    ////////////////////////player 2////////////////////////////////////
-    if (lblCreate( & MP -> lblPlayerName[1], renderer, assets -> font,
-            game -> players[1].namePlayer, white) != OK)
+    MP->lblPlayerScore[0].rect.x = 10;
+    MP->lblPlayerScore[0].rect.y = 40;
+
+    // ===== Player 2 =====
+    if (lblCreate(&MP->lblPlayerName[1], renderer, assets->font,
+                game->players[1].namePlayer, white) != OK)
         return SDL_ERR;
 
-    MP -> lblPlayerName[1].rect.x =
-        SCREEN_WIDTH - MP -> lblPlayerScore[1].rect.w - 100;
-    MP -> lblPlayerName[1].rect.y = 10;
+    snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[1].score);
 
-    snprintf(bufferScore, sizeof(bufferScore), "%d", game -> players[1].score);
-
-    if (lblCreate( & MP -> lblPlayerScore[1], renderer, assets -> font, bufferScore,
-            white) != OK)
+    if (lblCreate(&MP->lblPlayerScore[1], renderer, assets->font, bufferScore, white) != OK)
         return SDL_ERR;
 
-    MP -> lblPlayerScore[1].rect.x =
-        SCREEN_WIDTH - MP -> lblPlayerScore[1].rect.w - 100;
-    MP -> lblPlayerScore[1].rect.y = 40;
+    // Ahora sí: ya existe lblPlayerScore[1] y su rect.w es válido
+    MP->lblPlayerName[1].rect.x = SCREEN_WIDTH - MP->lblPlayerName[1].rect.w - 100;
+    MP->lblPlayerName[1].rect.y = 10;
 
-    MP -> lastPlayer = -1;
-    MP -> selection.firstSelected = -1;
-    MP -> selection.secondSelected = -1;
-    MP -> selection.waiting = 0;
-    MP -> selection.waitStart = 0;
+    MP->lblPlayerScore[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
+    MP->lblPlayerScore[1].rect.y = 40;
 
-    for (int i = 0; i < game -> playerCount; i++) {
-        MP -> scoreValue[i] = game -> players[i].score;
-        MP -> scoreRendered[i] = MP -> scoreValue[i];
+    // Selección
+    MP->selection.firstSelected = -1;
+    MP->selection.secondSelected = -1;
+    MP->selection.waiting = 0;
+    MP->selection.waitStart = 0;
+
+    // Scores cache
+    for (int i = 0; i < game->playerCount; i++) {
+        MP->scoreValue[i] = game->players[i].score;
+        MP->scoreRendered[i] = MP->scoreValue[i];
     }
 
-    if (strcmp(setCardMenu -> setCardChoosen, "Medieval") == 0)
-        MP -> activeSet = & assets -> dsSet;
+    // Set de cartas
+    if (strcmp(setCardMenu->setCardChoosen, "Medieval") == 0)
+        MP->activeSet = &assets->dsSet;
     else
-        MP -> activeSet = & assets -> greekSet;
+        MP->activeSet = &assets->greekSet;
 
-    // Cargar sonido botón back
-    MP -> btnBack.melody = sound_load(CLICK);
-
+    MP->btnBack.melody = sound_load(CLICK);
     return OK;
 }
+
 
 void playMPUpdate(tPlayMPScreen * MP, tGame * game, tBoard * board, tInput * input,
     SDL_Renderer * renderer, tAssets * assets,
@@ -1506,6 +1499,9 @@ void playMPUpdate(tPlayMPScreen * MP, tGame * game, tBoard * board, tInput * inp
         tCard * c1 = & board -> cards[MP -> selection.firstSelected];
         tCard * c2 = & board -> cards[MP -> selection.secondSelected];
 
+        int p = MP->lastPlayer;
+        if (p < 0 || p >= game->playerCount) p = 0;
+
         if (c1 -> id == c2 -> id) {
             c1 -> isMatched = 1;
             c2 -> isMatched = 1;
@@ -1516,7 +1512,7 @@ void playMPUpdate(tPlayMPScreen * MP, tGame * game, tBoard * board, tInput * inp
             gameOnPairResolved(game, 1); // match
 
             // Copiamos el score para que Render refresque el label
-            MP -> scoreValue[0] = game -> players[0].score;
+            MP -> scoreValue[p] = game -> players[p].score;
 
             MP -> selection.firstSelected = -1;
             MP -> selection.secondSelected = -1;
@@ -1546,6 +1542,9 @@ void playMPUpdate(tPlayMPScreen * MP, tGame * game, tBoard * board, tInput * inp
             // Null-check
             if (c2 -> sound_Not_Matched)
                 sound_play(c2 -> sound_Not_Matched, 0);
+
+            // CAMBIO DE TURNO
+            MP->lastPlayer = 1 - MP->lastPlayer;
         }
     }
 
@@ -1561,52 +1560,108 @@ void playMPUpdate(tPlayMPScreen * MP, tGame * game, tBoard * board, tInput * inp
     return;
 }
 
-void playMPRender(SDL_Renderer * renderer, tPlayMPScreen * MP, tAssets * assets,
-    tBoard * board, tGame * game) {
-    SDL_RenderCopy(renderer, assets -> backgroundGame, NULL, NULL);
-    SDL_RenderCopy(renderer, assets -> back, NULL, & MP -> btnBack.rect);
+void playMPRender(SDL_Renderer *renderer, tPlayMPScreen *MP, tAssets *assets,
+                  tBoard *board, tGame *game) {
 
-    SDL_Color white = {
-        255,
-        255,
-        255,
-        255
-    };
+    SDL_RenderCopy(renderer, assets->backgroundGame, NULL, NULL);
+    SDL_RenderCopy(renderer, assets->back, NULL, &MP->btnBack.rect);
 
-    for (int i = 0; i < game -> playerCount; i++) {
-        if (MP -> scoreRendered[i] != MP -> scoreValue[i]) {
-            MP -> scoreRendered[i] = MP -> scoreValue[i];
+    SDL_Color white = {255,255,255,255};
+    SDL_Color glowColor = {180, 30, 40, 200};
+
+
+    // Refresh score si cambió
+
+    for (int i = 0; i < game->playerCount; i++) {
+        if (MP->scoreRendered[i] != MP->scoreValue[i]) {
+            MP->scoreRendered[i] = MP->scoreValue[i];
 
             char buffer[32];
-            snprintf(buffer, sizeof(buffer), "%d", MP -> scoreRendered[i]);
+            snprintf(buffer, sizeof(buffer), "%d", MP->scoreRendered[i]);
 
-            if (MP -> lblPlayerScore[i].texture) {
-                SDL_DestroyTexture(MP -> lblPlayerScore[i].texture);
-                MP -> lblPlayerScore[i].texture = NULL;
+            if (MP->lblPlayerScore[i].texture) {
+                SDL_DestroyTexture(MP->lblPlayerScore[i].texture);
+                MP->lblPlayerScore[i].texture = NULL;
             }
 
-            lblCreate( & MP -> lblPlayerScore[i], renderer, assets -> font, buffer, white);
+            lblCreate(&MP->lblPlayerScore[i], renderer, assets->font, buffer, white);
 
-            // re-ubicar (ajustá a tu UI actual)
             if (i == 0) {
-                MP -> lblPlayerScore[0].rect.x = 10;
-                MP -> lblPlayerScore[0].rect.y = 50;
+                MP->lblPlayerScore[0].rect.x = 10;
+                MP->lblPlayerScore[0].rect.y = 40;
             } else {
-                MP -> lblPlayerScore[1].rect.x =
-                    SCREEN_WIDTH - MP -> lblPlayerScore[1].rect.w - 100;
-                MP -> lblPlayerScore[1].rect.y = 50;
+                MP->lblPlayerScore[1].rect.x =
+                    SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
+                MP->lblPlayerScore[1].rect.y = 40;
             }
         }
     }
 
-    for (int i = 0; i < game -> playerCount; i++) {
-        SDL_RenderCopy(renderer, MP -> lblPlayerName[i].texture, NULL, &
-            MP -> lblPlayerName[i].rect);
-        SDL_RenderCopy(renderer, MP -> lblPlayerScore[i].texture, NULL, &
-            MP -> lblPlayerScore[i].rect);
+    int active = MP->lastPlayer;
+    if (active < 0 || active >= game->playerCount)
+        active = 0;
+
+    for (int i = 0; i < game->playerCount; i++) {
+
+        // ----- PLAYER NAME -----
+        if (i == active) {
+            SDL_SetTextureColorMod(MP->lblPlayerName[i].texture,
+                                glowColor.r, glowColor.g, glowColor.b);
+
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dy = -2; dy <= 2; dy++) {
+                    if (dx == 0 && dy == 0) continue;
+
+                    SDL_Rect glowRect = MP->lblPlayerName[i].rect;
+                    glowRect.x += dx;
+                    glowRect.y += dy;
+
+                    SDL_RenderCopy(renderer,
+                                MP->lblPlayerName[i].texture,
+                                NULL,
+                                &glowRect);
+                }
+            }
+
+            SDL_SetTextureColorMod(MP->lblPlayerName[i].texture, 255,255,255);
+        }
+
+        SDL_RenderCopy(renderer,
+                    MP->lblPlayerName[i].texture,
+                    NULL,
+                    &MP->lblPlayerName[i].rect);
+
+
+        // ----- PLAYER SCORE -----
+        if (i == active) {
+            SDL_SetTextureColorMod(MP->lblPlayerScore[i].texture,
+                                glowColor.r, glowColor.g, glowColor.b);
+
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dy = -2; dy <= 2; dy++) {
+                    if (dx == 0 && dy == 0) continue;
+
+                    SDL_Rect glowRect = MP->lblPlayerScore[i].rect;
+                    glowRect.x += dx;
+                    glowRect.y += dy;
+
+                    SDL_RenderCopy(renderer,
+                                MP->lblPlayerScore[i].texture,
+                                NULL,
+                                &glowRect);
+                }
+            }
+
+            SDL_SetTextureColorMod(MP->lblPlayerScore[i].texture, 255,255,255);
+        }
+
+        SDL_RenderCopy(renderer,
+                    MP->lblPlayerScore[i].texture,
+                    NULL,
+                    &MP->lblPlayerScore[i].rect);
     }
 
-    boardRender(renderer, board, MP -> activeSet);
+    boardRender(renderer, board, MP->activeSet);
 }
 
 void playMPDestroy(tPlayMPScreen * MP, tGame * game) {
@@ -2062,14 +2117,14 @@ void playMPExitUpdate(tPlayMPScreenExit * MP, tGame * game, tBoard * board,
         if (pointInRect(input -> mouseX, input -> mouseY, & MP -> btnTryAgain.rect)) {
             * currentScreen = MP -> currentDifficulty;
             sound_play(MP -> btnTryAgain.melody, 0); // reproduce sonido
-            game -> playerCount = 1;
+            game -> playerCount = 2;
         }
 
         if (pointInRect(input -> mouseX, input -> mouseY, &
                 MP -> btnPantallaInicio.rect)) {
             * currentScreen = SCREEN_MAIN;
             sound_play(MP -> btnPantallaInicio.melody, 0); // reproduce sonido
-            game -> playerCount = 1;
+            game -> playerCount = 2;
         }
         if (pointInRect(input -> mouseX, input -> mouseY, & MP -> btnExit.rect)) {
             * currentScreen = SCREEN_EXIT;

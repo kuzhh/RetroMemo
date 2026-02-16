@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
         break;
 
         case SCREEN_GAME_MID:
-            printf("DEBUG main: Estamos en SCREEN_GAME_MID\n");
+            //printf("DEBUG main: Estamos en SCREEN_GAME_MID\n");
 
             if (game.playerCount == 1) {
                 playSPUpdate(&playSP, &game, &board, &input, &currentScreen);
@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
         break;
 
         case SCREEN_GAME_HIGH:
-            printf("DEBUG main: Estamos en SCREEN_GAME_HIGH\n");
+            //printf("DEBUG main: Estamos en SCREEN_GAME_HIGH\n");
 
             if (game.playerCount == 1) {
                 playSPUpdate(&playSP, &game, &board, &input, &currentScreen);
@@ -229,20 +229,20 @@ int main(int argc, char *argv[]) {
         case SCREEN_GAMEOVER:
             if (configSource == SCREEN_CONFIG_SINGLE)
             {
-                printf("DEBUG main: Cambiando a SCREEN_GAMEOVER\n");
+                //printf("DEBUG main: Cambiando a SCREEN_GAMEOVER\n");
                 playSPExitUpdate(&playSPExit, &game, &board, &input, &currentScreen);
                 playSPExitRender(screen.renderer, &playSPExit, &assets, &board);
             }
             else
             {
-                printf("DEBUG main: Cambiando a SCREEN_GAMEOVER\n");
+                //printf("DEBUG main: Cambiando a SCREEN_GAMEOVER\n");
                 playMPExitUpdate(&playMPExit, &game, &board, &input, &currentScreen);
                 playMPExitRender(screen.renderer, &playMPExit, &assets, &board);
             }
         break;
 
         case SCREEN_EXIT:
-            printf("DEBUG main: Cambiando a SCREEN_EXIT\n");
+            //printf("DEBUG main: Cambiando a SCREEN_EXIT\n");
             running = false;
         break;
 
@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
         (lastScreenState == SCREEN_CONFIG_SINGLE ||
         lastScreenState == SCREEN_CONFIG_MULTI)) {
         configSource = lastScreenState;
-        printf("DEBUG: Guardado configSource ID: %d\n", configSource);
+        //printf("DEBUG: Guardado configSource ID: %d\n", configSource);
     }
 
         SDL_RenderPresent(screen.renderer);
