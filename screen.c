@@ -1,5 +1,6 @@
 #include "screen.h"
 #include "board.h"
+#include "game.h"
 #include <string.h>
 
 #define CLICK "snd/Click.wav"
@@ -9,1334 +10,1751 @@
 // FUNCIONES AUXILIARES
 // =========================================================
 
-int lblCreate(tLabel* lbl, SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_Color color)
-{
-    SDL_Surface* surface = TTF_RenderText_Blended(font, text, color);
-    if(!surface)
-    {
-        printf("Error creating text surface: %s\n", TTF_GetError());
-        return SDL_ERR;
-    }
+int lblCreate(tLabel *lbl, SDL_Renderer *renderer, TTF_Font *font,
+              const char *text, SDL_Color color) {
+  SDL_Surface *surface = TTF_RenderText_Blended(font, text, color);
+  if (!surface) {
+    printf("Error creating text surface: %s\n", TTF_GetError());
+    return SDL_ERR;
+  }
 
-    lbl->texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    if(!lbl->texture)
-    {
-        printf("Error creating text texture: %s\n", SDL_GetError());
-        return SDL_ERR;
-    }
+  lbl->texture = SDL_CreateTextureFromSurface(renderer, surface);
+  SDL_FreeSurface(surface);
+  if (!lbl->texture) {
+    printf("Error creating text texture: %s\n", SDL_GetError());
+    return SDL_ERR;
+  }
 
-    SDL_QueryTexture(lbl->texture, NULL, NULL, &lbl->rect.w, &lbl->rect.h);
-    return OK;
+  SDL_QueryTexture(lbl->texture, NULL, NULL, &lbl->rect.w, &lbl->rect.h);
+  return OK;
 }
 
-int screenInitialize(tScreen* screen, const char* title, int w, int h)
-{
-    if(SDL_Init(SDL_INIT_VIDEO))
-    {
-        printf("Error inicializando SDL: %s\n", SDL_GetError());
-        return SDL_ERR;
-    }
+int screenInitialize(tScreen *screen, const char *title, int w, int h) {
+  if (SDL_Init(SDL_INIT_VIDEO)) {
+    printf("Error inicializando SDL: %s\n", SDL_GetError());
+    return SDL_ERR;
+  }
 
-    int img_init = IMG_Init(IMG_FLAGS);
-    if((img_init & IMG_FLAGS) != IMG_FLAGS)
-    {
-        printf("Error inicializando IMG INIT PNG: %s\n", IMG_GetError());
-        return SDL_ERR;
-    }
+  int img_init = IMG_Init(IMG_FLAGS);
+  if ((img_init & IMG_FLAGS) != IMG_FLAGS) {
+    printf("Error inicializando IMG INIT PNG: %s\n", IMG_GetError());
+    return SDL_ERR;
+  }
 
-    if(TTF_Init())
-    {
-        printf("Error inicializando TTF INIT: %s\n", IMG_GetError());
-        return SDL_ERR;
-    }
+  if (TTF_Init()) {
+    printf("Error inicializando TTF INIT: %s\n", IMG_GetError());
+    return SDL_ERR;
+  }
 
-    screen->window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, 0);
-    if(!screen->window) return SDL_ERR;
+  screen->window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED,
+                                    SDL_WINDOWPOS_CENTERED, w, h, 0);
+  if (!screen->window)
+    return SDL_ERR;
 
-    screen->renderer = SDL_CreateRenderer(screen->window, -1, SDL_RENDERER_ACCELERATED);
-    if(!screen->renderer) return SDL_ERR;
+  screen->renderer =
+      SDL_CreateRenderer(screen->window, -1, SDL_RENDERER_ACCELERATED);
+  if (!screen->renderer)
+    return SDL_ERR;
 
-    return OK;
+  return OK;
 }
 
-void screenShutdown(tScreen* screen)
-{
-    SDL_DestroyRenderer(screen->renderer);
-    SDL_DestroyWindow(screen->window);
-    TTF_Quit();
-    IMG_Quit();
-    SDL_Quit();
+void screenShutdown(tScreen *screen) {
+  SDL_DestroyRenderer(screen->renderer);
+  SDL_DestroyWindow(screen->window);
+  TTF_Quit();
+  IMG_Quit();
+  SDL_Quit();
 }
 
 // =========================================================
 // MAIN MENU
 // =========================================================
 
-int mainMenuInit(tMainMenu* menu, SDL_Renderer* renderer, tAssets* assets)
-{
-    int centerX = SCREEN_WIDTH / 2;
-    int centerY = SCREEN_HEIGHT / 2;
-    int btnWidth = BTN_W;
-    int btnHeight = BTN_H;
+int mainMenuInit(tMainMenu *menu, SDL_Renderer *renderer, tAssets *assets) {
+  int centerX = SCREEN_WIDTH / 2;
+  int centerY = SCREEN_HEIGHT / 2;
+  int btnWidth = BTN_W;
+  int btnHeight = BTN_H;
 
-    // Logo
-    menu->logoRect.w = LOGO_W;
-    menu->logoRect.h = LOGO_H;
-    menu->logoRect.x = centerX - (LOGO_W / 2);
-    menu->logoRect.y = 10;
+  // Logo
+  menu->logoRect.w = LOGO_W;
+  menu->logoRect.h = LOGO_H;
+  menu->logoRect.x = centerX - (LOGO_W / 2);
+  menu->logoRect.y = 10;
 
-    // Botones
-    menu->btnSP.rect = (SDL_Rect){centerX - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
-    menu->btnSP.state = BTN_NORMAL;
+  // Botones
+  menu->btnSP.rect =
+      (SDL_Rect){centerX - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
+  menu->btnSP.state = BTN_NORMAL;
 
-    menu->btnMP = menu->btnSP;
-    menu->btnMP.rect.y += 90;
+  menu->btnMP = menu->btnSP;
+  menu->btnMP.rect.y += 90;
 
-    menu->btnExit = menu->btnSP;
-    menu->btnExit.rect.y += 180;
+  menu->btnExit = menu->btnSP;
+  menu->btnExit.rect.y += 180;
 
-    SDL_Color white = {255,255,255,255};
+  SDL_Color white = {255, 255, 255, 255};
 
-    if(lblCreate(&menu->lblSP, renderer, assets->font, "Singleplayer", white) != OK) return SDL_ERR;
+  if (lblCreate(&menu->lblSP, renderer, assets->font, "Singleplayer", white) !=
+      OK)
+    return SDL_ERR;
 
-    menu->lblSP.rect.x = menu->btnSP.rect.x + (menu->btnSP.rect.w - menu->lblSP.rect.w)/2;
-    menu->lblSP.rect.y = menu->btnSP.rect.y + (menu->btnSP.rect.h - menu->lblSP.rect.h)/2;
+  menu->lblSP.rect.x =
+      menu->btnSP.rect.x + (menu->btnSP.rect.w - menu->lblSP.rect.w) / 2;
+  menu->lblSP.rect.y =
+      menu->btnSP.rect.y + (menu->btnSP.rect.h - menu->lblSP.rect.h) / 2;
 
-    if(lblCreate(&menu->lblMP, renderer, assets->font, "Multiplayer", white) != OK) return SDL_ERR;
-    menu->lblMP.rect.x = menu->btnMP.rect.x + (menu->btnMP.rect.w - menu->lblMP.rect.w)/2;
-    menu->lblMP.rect.y = menu->btnMP.rect.y + (menu->btnMP.rect.h - menu->lblMP.rect.h)/2;
+  if (lblCreate(&menu->lblMP, renderer, assets->font, "Multiplayer", white) !=
+      OK)
+    return SDL_ERR;
+  menu->lblMP.rect.x =
+      menu->btnMP.rect.x + (menu->btnMP.rect.w - menu->lblMP.rect.w) / 2;
+  menu->lblMP.rect.y =
+      menu->btnMP.rect.y + (menu->btnMP.rect.h - menu->lblMP.rect.h) / 2;
 
-    if(lblCreate(&menu->lblExit, renderer, assets->font, "Exit game", white) != OK) return SDL_ERR;
-    menu->lblExit.rect.x = menu->btnExit.rect.x + (menu->btnExit.rect.w - menu->lblExit.rect.w)/2;
-    menu->lblExit.rect.y = menu->btnExit.rect.y + (menu->btnExit.rect.h - menu->lblExit.rect.h)/2;
+  if (lblCreate(&menu->lblExit, renderer, assets->font, "Exit game", white) !=
+      OK)
+    return SDL_ERR;
+  menu->lblExit.rect.x =
+      menu->btnExit.rect.x + (menu->btnExit.rect.w - menu->lblExit.rect.w) / 2;
+  menu->lblExit.rect.y =
+      menu->btnExit.rect.y + (menu->btnExit.rect.h - menu->lblExit.rect.h) / 2;
 
-    //carga sonido
-    menu->melody = sound_load(MUSIC);//cargo melodia pincipal.
-    menu->btnSP.melody = sound_load(CLICK);
-    menu->btnMP.melody = sound_load(CLICK);
-    menu->btnExit.melody = sound_load(CLICK);
-    if(!menu->btnSP.melody || !menu->btnMP.melody || !menu->btnExit.melody || !menu->melody)
-    {
-        fprintf(stderr,"No se pudo cargar el sonido.");
-        sound_finish();
-    }
+  // carga sonido
+  menu->melody = sound_load(MUSIC); // cargo melodia pincipal.
+  menu->btnSP.melody = sound_load(CLICK);
+  menu->btnMP.melody = sound_load(CLICK);
+  menu->btnExit.melody = sound_load(CLICK);
+  if (!menu->btnSP.melody || !menu->btnMP.melody || !menu->btnExit.melody ||
+      !menu->melody) {
+    fprintf(stderr, "No se pudo cargar el sonido.");
+    sound_finish();
+  }
 
-    return OK;
+  return OK;
 }
 
-void mainMenuUpdate(tMainMenu* menu, tInput* input, ScreenType* currentScreen, tGame* game)
-{
-    btnUpdate(&menu->btnSP, input);
-    btnUpdate(&menu->btnMP, input);
-    btnUpdate(&menu->btnExit, input);
+void mainMenuUpdate(tMainMenu *menu, tInput *input, ScreenType *currentScreen,
+                    tGame *game) {
+  btnUpdate(&menu->btnSP, input);
+  btnUpdate(&menu->btnMP, input);
+  btnUpdate(&menu->btnExit, input);
 
-    if(input->mouseReleased)
-    {
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnSP.rect)){
-            *currentScreen = SCREEN_CONFIG_SINGLE;
-            sound_play(menu->btnSP.melody,0);//reproduce sonido
-            game->playerCount = 1;
-        }
-
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnMP.rect)) {
-            *currentScreen = SCREEN_CONFIG_MULTI;
-            sound_play(menu->btnMP.melody,0);//reproduce sonido
-            game->playerCount = 2;
-        }
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnExit.rect)){
-            *currentScreen = SCREEN_EXIT;
-            sound_play(menu->btnExit.melody,0);//reproduce sonido
-            game->playerCount = 0;
-        }
+  if (input->mouseReleased) {
+    if (pointInRect(input->mouseX, input->mouseY, &menu->btnSP.rect)) {
+      *currentScreen = SCREEN_CONFIG_SINGLE;
+      sound_play(menu->btnSP.melody, 0); // reproduce sonido
+      game->playerCount = 1;
     }
+
+    if (pointInRect(input->mouseX, input->mouseY, &menu->btnMP.rect)) {
+      *currentScreen = SCREEN_CONFIG_MULTI;
+      sound_play(menu->btnMP.melody, 0); // reproduce sonido
+      game->playerCount = 2;
+    }
+    if (pointInRect(input->mouseX, input->mouseY, &menu->btnExit.rect)) {
+      *currentScreen = SCREEN_EXIT;
+      sound_play(menu->btnExit.melody, 0); // reproduce sonido
+      game->playerCount = 0;
+    }
+  }
 }
 
-void mainMenuRender(SDL_Renderer* renderer, tMainMenu* menu, tAssets* assets)
-{
-    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
-    SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
+void mainMenuRender(SDL_Renderer *renderer, tMainMenu *menu, tAssets *assets) {
+  SDL_RenderCopy(renderer, assets->background, NULL, NULL);
+  SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
 
-    SDL_Texture* tex;
+  SDL_Texture *tex;
 
-    // SP
-    switch(menu->btnSP.state) {
-        case BTN_NORMAL: tex = assets->buttonNormal; break;
-        case BTN_HOVER: tex = assets->buttonHover; break;
-        case BTN_PRESSED: tex = assets->buttonPressed; break;
-        default: tex = assets->buttonNormal; break;
-    }
-    SDL_RenderCopy(renderer, tex, NULL, &menu->btnSP.rect);
+  // SP
+  switch (menu->btnSP.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &menu->btnSP.rect);
 
-    // MP
-    switch(menu->btnMP.state) {
-        case BTN_NORMAL: tex = assets->buttonNormal; break;
-        case BTN_HOVER: tex = assets->buttonHover; break;
-        case BTN_PRESSED: tex = assets->buttonPressed; break;
-        default: tex = assets->buttonNormal; break;
-    }
-    SDL_RenderCopy(renderer, tex, NULL, &menu->btnMP.rect);
+  // MP
+  switch (menu->btnMP.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &menu->btnMP.rect);
 
-    // Exit
-    switch(menu->btnExit.state) {
-        case BTN_NORMAL: tex = assets->buttonNormal; break;
-        case BTN_HOVER: tex = assets->buttonHover; break;
-        case BTN_PRESSED: tex = assets->buttonPressed; break;
-        default: tex = assets->buttonNormal; break;
-    }
-    SDL_RenderCopy(renderer, tex, NULL, &menu->btnExit.rect);
+  // Exit
+  switch (menu->btnExit.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &menu->btnExit.rect);
 
-    SDL_RenderCopy(renderer, menu->lblSP.texture, NULL, &menu->lblSP.rect);
-    SDL_RenderCopy(renderer, menu->lblMP.texture, NULL, &menu->lblMP.rect);
-    SDL_RenderCopy(renderer, menu->lblExit.texture, NULL, &menu->lblExit.rect);
+  SDL_RenderCopy(renderer, menu->lblSP.texture, NULL, &menu->lblSP.rect);
+  SDL_RenderCopy(renderer, menu->lblMP.texture, NULL, &menu->lblMP.rect);
+  SDL_RenderCopy(renderer, menu->lblExit.texture, NULL, &menu->lblExit.rect);
 }
 
-void mainMenuDestroy(tMainMenu* menu)
-{
-    if(menu->lblSP.texture) SDL_DestroyTexture(menu->lblSP.texture);
-    if(menu->lblMP.texture) SDL_DestroyTexture(menu->lblMP.texture);
-    if(menu->lblExit.texture) SDL_DestroyTexture(menu->lblExit.texture);
+void mainMenuDestroy(tMainMenu *menu) {
+  if (menu->lblSP.texture)
+    SDL_DestroyTexture(menu->lblSP.texture);
+  if (menu->lblMP.texture)
+    SDL_DestroyTexture(menu->lblMP.texture);
+  if (menu->lblExit.texture)
+    SDL_DestroyTexture(menu->lblExit.texture);
 
-    //destroy melodia menu
-    sound_destroy(menu->melody);
-    sound_destroy(menu->btnSP.melody);
-    sound_destroy(menu->btnMP.melody);
-    sound_destroy(menu->btnExit.melody);
+  // destroy melodia menu
+  sound_destroy(menu->melody);
+  sound_destroy(menu->btnSP.melody);
+  sound_destroy(menu->btnMP.melody);
+  sound_destroy(menu->btnExit.melody);
 }
 
 // =========================================================
 // SINGLE PLAYER SCREEN
 // =========================================================
 
-int singlePlayerInit(tSinglePlayerScreen* single, SDL_Renderer* renderer, tAssets* assets)
-{
-    int centerX = SCREEN_WIDTH / 2;
-    int centerY = SCREEN_HEIGHT / 2;
+int singlePlayerInit(tSinglePlayerScreen *single, SDL_Renderer *renderer,
+                     tAssets *assets) {
+  int centerX = SCREEN_WIDTH / 2;
+  int centerY = SCREEN_HEIGHT / 2;
 
-    single->logoRect = (SDL_Rect){centerX - (LOGO_W/2), 10, LOGO_W, LOGO_H};
+  single->logoRect = (SDL_Rect){centerX - (LOGO_W / 2), 10, LOGO_W, LOGO_H};
 
-    single->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
-    single->btnBack.state = BTN_NORMAL;
+  single->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
+  single->btnBack.state = BTN_NORMAL;
 
-    single->btnInputName.rect = (SDL_Rect){centerX - (BTN_W / 2), centerY + 50, BTN_W, BTN_H};
-    single->btnInputName.state = BTN_NORMAL;
+  single->btnInputName.rect =
+      (SDL_Rect){centerX - (BTN_W / 2), centerY + 50, BTN_W, BTN_H};
+  single->btnInputName.state = BTN_NORMAL;
 
-    single->btnContinuar = single->btnInputName;
-    single->btnContinuar.rect.y += 90;
+  single->btnContinuar = single->btnInputName;
+  single->btnContinuar.rect.y += 90;
 
-    SDL_Color white = {255,255,255,255};
+  SDL_Color white = {255, 255, 255, 255};
 
-    if(lblCreate(&single->lblInputName, renderer, assets->font, "Ingresa tu nombre", white) != OK) return SDL_ERR;
-    single->lblInputName.rect.x = single->btnInputName.rect.x + (single->btnInputName.rect.w - single->lblInputName.rect.w) / 2;
-    single->lblInputName.rect.y = single->btnInputName.rect.y - single->lblInputName.rect.h - 10;
+  if (lblCreate(&single->lblInputName, renderer, assets->font,
+                "Ingresa tu nombre", white) != OK)
+    return SDL_ERR;
+  single->lblInputName.rect.x =
+      single->btnInputName.rect.x +
+      (single->btnInputName.rect.w - single->lblInputName.rect.w) / 2;
+  single->lblInputName.rect.y =
+      single->btnInputName.rect.y - single->lblInputName.rect.h - 10;
 
-    if(lblCreate(&single->lblContinuar, renderer, assets->font, "Continuar", white) != OK) return SDL_ERR;
-    single->lblContinuar.rect.x = single->btnContinuar.rect.x + (single->btnContinuar.rect.w - single->lblContinuar.rect.w) / 2;
-    single->lblContinuar.rect.y = single->btnContinuar.rect.y + (single->btnContinuar.rect.h - single->lblContinuar.rect.h) / 2;
+  if (lblCreate(&single->lblContinuar, renderer, assets->font, "Continuar",
+                white) != OK)
+    return SDL_ERR;
+  single->lblContinuar.rect.x =
+      single->btnContinuar.rect.x +
+      (single->btnContinuar.rect.w - single->lblContinuar.rect.w) / 2;
+  single->lblContinuar.rect.y =
+      single->btnContinuar.rect.y +
+      (single->btnContinuar.rect.h - single->lblContinuar.rect.h) / 2;
 
-    //carga los sonidos.
-    single->btnBack.melody = sound_load(CLICK);
-    single->btnContinuar.melody = sound_load(CLICK);
-    if(!single->btnBack.melody || !single->btnContinuar.melody)
-    {
-        fprintf(stderr,"No se pudo cargar el sonido.");
-        sound_finish();
-    }
+  // carga los sonidos.
+  single->btnBack.melody = sound_load(CLICK);
+  single->btnContinuar.melody = sound_load(CLICK);
+  if (!single->btnBack.melody || !single->btnContinuar.melody) {
+    fprintf(stderr, "No se pudo cargar el sonido.");
+    sound_finish();
+  }
 
-    return OK;
+  return OK;
 }
 
-void singlePlayerUpdate(tSinglePlayerScreen* single, tInput* input, ScreenType* currentScreen, tGame* game)
-{
-    btnUpdate(&single->btnContinuar, input);
+void singlePlayerUpdate(tSinglePlayerScreen *single, tInput *input,
+                        ScreenType *currentScreen, tGame *game) {
+  btnUpdate(&single->btnContinuar, input);
 
-    // BACK
-    if(input->mouseReleased && pointInRect(input->mouseX, input->mouseY, &single->btnBack.rect))
-    {
+  // BACK
+  if (input->mouseReleased &&
+      pointInRect(input->mouseX, input->mouseY, &single->btnBack.rect)) {
+    input->textActive = 0;
+    SDL_StopTextInput();
+    input->textInput[0] = '\0';
+    input->textInputLen = 0;
+    *currentScreen = SCREEN_MAIN;
+
+    // reproduce sonido
+    sound_play(single->btnBack.melody, 0);
+
+    return;
+  }
+
+  // CLICK INPUT
+  if (input->mouseReleased) {
+    if (pointInRect(input->mouseX, input->mouseY, &single->btnInputName.rect)) {
+      if (!input->textActive) {
+        input->textActive = 1;
+        SDL_StartTextInput();
+      }
+    } else if (!pointInRect(input->mouseX, input->mouseY,
+                            &single->btnContinuar.rect)) {
+      if (input->textActive) {
         input->textActive = 0;
         SDL_StopTextInput();
-        input->textInput[0] = '\0';
-        input->textInputLen = 0;
-        *currentScreen = SCREEN_MAIN;
-
-        //reproduce sonido
-        sound_play(single->btnBack.melody,0);
-
-        return;
+      }
     }
+  }
 
-    // CLICK INPUT
-    if(input->mouseReleased)
-    {
-        if(pointInRect(input->mouseX, input->mouseY, &single->btnInputName.rect))
-        {
-            if(!input->textActive) {
-                input->textActive = 1;
-                SDL_StartTextInput();
-            }
-        }
-        else if(!pointInRect(input->mouseX, input->mouseY, &single->btnContinuar.rect))
-        {
-            if(input->textActive) {
-                input->textActive = 0;
-                SDL_StopTextInput();
-            }
-        }
-    }
+  // CONTINUAR
+  if (input->mouseReleased &&
+      pointInRect(input->mouseX, input->mouseY, &single->btnContinuar.rect)) {
+    if (input->textInputLen > 0) {
+      strncpy(game->players[0].namePlayer, input->textInput,
+              MAX_TEXT_INPUT - 1);
+      game->players[0].namePlayer[MAX_TEXT_INPUT - 1] = '\0';
+    } else
+      strcpy(game->players[0].namePlayer, "Player 1");
 
-    // CONTINUAR
-    if(input->mouseReleased && pointInRect(input->mouseX, input->mouseY, &single->btnContinuar.rect))
-    {
-        if (input->textInputLen > 0)
-        {
-            strncpy(game->players[0].namePlayer, input->textInput, MAX_TEXT_INPUT - 1);
-            game->players[0].namePlayer[MAX_TEXT_INPUT - 1] = '\0';
-        }
-        else
-            strcpy(game->players[0].namePlayer, "Player 1");
+    input->textActive = 0;
+    SDL_StopTextInput();
+    input->textInput[0] = '\0';
+    input->textInputLen = 0;
+    *currentScreen = SCREEN_SET_CARDS;
 
-
-
-        input->textActive = 0;
-        SDL_StopTextInput();
-        input->textInput[0] = '\0';
-        input->textInputLen = 0;
-        *currentScreen = SCREEN_SET_CARDS;
-
-        //repruduce sonido
-        sound_play(single->btnContinuar.melody,0);
-    }
+    // repruduce sonido
+    sound_play(single->btnContinuar.melody, 0);
+  }
 }
 
-void singlePlayerRender(SDL_Renderer* renderer, tSinglePlayerScreen* single, tAssets* assets, tInput* input)
-{
-    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
-    SDL_RenderCopy(renderer, assets->logo, NULL, &single->logoRect);
-    SDL_RenderCopy(renderer, assets->back, NULL, &single->btnBack.rect);
+void singlePlayerRender(SDL_Renderer *renderer, tSinglePlayerScreen *single,
+                        tAssets *assets, tInput *input) {
+  SDL_RenderCopy(renderer, assets->background, NULL, NULL);
+  SDL_RenderCopy(renderer, assets->logo, NULL, &single->logoRect);
+  SDL_RenderCopy(renderer, assets->back, NULL, &single->btnBack.rect);
 
-    // Input Box
-    SDL_RenderCopy(renderer, assets->buttonNormal, NULL, &single->btnInputName.rect);
-    SDL_RenderCopy(renderer, single->lblInputName.texture, NULL, &single->lblInputName.rect);
+  // Input Box
+  SDL_RenderCopy(renderer, assets->buttonNormal, NULL,
+                 &single->btnInputName.rect);
+  SDL_RenderCopy(renderer, single->lblInputName.texture, NULL,
+                 &single->lblInputName.rect);
 
-    // Texto Input
-    if(input)
-    {
-        char txtBuf[MAX_TEXT_INPUT + 1];
-        memset(txtBuf, 0, sizeof(txtBuf));
-        if(input->textInputLen > 0) {
-            strncpy(txtBuf, input->textInput, MAX_TEXT_INPUT);
-            txtBuf[MAX_TEXT_INPUT] = '\0';
-        }
-
-        if(strlen(txtBuf) > 0 || input->textActive)
-        {
-            SDL_Color txtColor = {255,255,255,255};
-            // Espacio dummy si está vacío para calcular altura
-            SDL_Surface* surf = TTF_RenderText_Blended(assets->font, (strlen(txtBuf)>0)?txtBuf:" ", txtColor);
-            if(surf) {
-                SDL_Texture* txtTex = SDL_CreateTextureFromSurface(renderer, surf);
-                if(txtTex) {
-                    int tw, th;
-                    SDL_QueryTexture(txtTex, NULL, NULL, &tw, &th);
-                    SDL_Rect dst = single->btnInputName.rect;
-                    dst.x += 50;
-                    dst.y += (dst.h - th) / 2;
-                    dst.w = tw;
-                    dst.h = th;
-
-                    if(strlen(txtBuf)>0) SDL_RenderCopy(renderer, txtTex, NULL, &dst);
-
-                    if(input->textActive) {
-                        int cx = dst.x + (strlen(txtBuf)>0 ? dst.w : 0) + 2;
-                        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                        SDL_RenderDrawLine(renderer, cx, dst.y, cx, dst.y + dst.h);
-                    }
-                    SDL_DestroyTexture(txtTex);
-                }
-                SDL_FreeSurface(surf);
-            }
-        }
+  // Texto Input
+  if (input) {
+    char txtBuf[MAX_TEXT_INPUT + 1];
+    memset(txtBuf, 0, sizeof(txtBuf));
+    if (input->textInputLen > 0) {
+      strncpy(txtBuf, input->textInput, MAX_TEXT_INPUT);
+      txtBuf[MAX_TEXT_INPUT] = '\0';
     }
 
-    // Continuar
-    SDL_Texture* tex;
-    switch(single->btnContinuar.state) {
-        case BTN_NORMAL: tex = assets->buttonNormal; break;
-        case BTN_HOVER: tex = assets->buttonHover; break;
-        case BTN_PRESSED: tex = assets->buttonPressed; break;
-        default: tex = assets->buttonNormal; break;
+    if (strlen(txtBuf) > 0 || input->textActive) {
+      SDL_Color txtColor = {255, 255, 255, 255};
+      // Espacio dummy si está vacío para calcular altura
+      SDL_Surface *surf = TTF_RenderText_Blended(
+          assets->font, (strlen(txtBuf) > 0) ? txtBuf : " ", txtColor);
+      if (surf) {
+        SDL_Texture *txtTex = SDL_CreateTextureFromSurface(renderer, surf);
+        if (txtTex) {
+          int tw, th;
+          SDL_QueryTexture(txtTex, NULL, NULL, &tw, &th);
+          SDL_Rect dst = single->btnInputName.rect;
+          dst.x += 50;
+          dst.y += (dst.h - th) / 2;
+          dst.w = tw;
+          dst.h = th;
+
+          if (strlen(txtBuf) > 0)
+            SDL_RenderCopy(renderer, txtTex, NULL, &dst);
+
+          if (input->textActive) {
+            int cx = dst.x + (strlen(txtBuf) > 0 ? dst.w : 0) + 2;
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_RenderDrawLine(renderer, cx, dst.y, cx, dst.y + dst.h);
+          }
+          SDL_DestroyTexture(txtTex);
+        }
+        SDL_FreeSurface(surf);
+      }
     }
-    SDL_RenderCopy(renderer, tex, NULL, &single->btnContinuar.rect);
-    SDL_RenderCopy(renderer, single->lblContinuar.texture, NULL, &single->lblContinuar.rect);
+  }
+
+  // Continuar
+  SDL_Texture *tex;
+  switch (single->btnContinuar.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &single->btnContinuar.rect);
+  SDL_RenderCopy(renderer, single->lblContinuar.texture, NULL,
+                 &single->lblContinuar.rect);
 }
 
-void singlePlayerDestroy(tSinglePlayerScreen* single)
-{
-    if(single->lblInputName.texture) SDL_DestroyTexture(single->lblInputName.texture);
-    if(single->lblContinuar.texture) SDL_DestroyTexture(single->lblContinuar.texture);
-    //destroy sonido singlePlayer
-    sound_destroy(single->btnBack.melody);
-    sound_destroy(single->btnContinuar.melody);
+void singlePlayerDestroy(tSinglePlayerScreen *single) {
+  if (single->lblInputName.texture)
+    SDL_DestroyTexture(single->lblInputName.texture);
+  if (single->lblContinuar.texture)
+    SDL_DestroyTexture(single->lblContinuar.texture);
+  // destroy sonido singlePlayer
+  sound_destroy(single->btnBack.melody);
+  sound_destroy(single->btnContinuar.melody);
 }
 
 // =========================================================
 // MULTIPLAYER SCREEN
 // =========================================================
 
-int multiPlayerInit(tMultiplayerScreen* multi, SDL_Renderer* renderer, tAssets* assets)
-{
-    int centerX = SCREEN_WIDTH / 2;
-    int centerY = SCREEN_HEIGHT / 2;
-    int btnWidth = BTN_W;
-    int btnHeight = BTN_H;
+int multiPlayerInit(tMultiplayerScreen *multi, SDL_Renderer *renderer,
+                    tAssets *assets) {
+  int centerX = SCREEN_WIDTH / 2;
+  int centerY = SCREEN_HEIGHT / 2;
+  int btnWidth = BTN_W;
+  int btnHeight = BTN_H;
 
-    // Logos y Botones básicos
-    multi->logoRect = (SDL_Rect){centerX - (LOGO_W/2), 10, LOGO_W, LOGO_H};
-    multi->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
-    multi->btnBack.state = BTN_NORMAL;
+  // Logos y Botones básicos
+  multi->logoRect = (SDL_Rect){centerX - (LOGO_W / 2), 10, LOGO_W, LOGO_H};
+  multi->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
+  multi->btnBack.state = BTN_NORMAL;
 
-    // Inputs Positions
-    multi->btnInputName1.rect = (SDL_Rect){(centerX / 2) - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
-    multi->btnInputName1.state = BTN_NORMAL;
+  // Inputs Positions
+  multi->btnInputName1.rect = (SDL_Rect){(centerX / 2) - (btnWidth / 2),
+                                         centerY + 50, btnWidth, btnHeight};
+  multi->btnInputName1.state = BTN_NORMAL;
 
-    multi->btnInputName2.rect = (SDL_Rect){centerX + (centerX / 2) - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
-    multi->btnInputName2.state = BTN_NORMAL;
+  multi->btnInputName2.rect =
+      (SDL_Rect){centerX + (centerX / 2) - (btnWidth / 2), centerY + 50,
+                 btnWidth, btnHeight};
+  multi->btnInputName2.state = BTN_NORMAL;
 
-    multi->btnContinuar.rect = (SDL_Rect){centerX - (btnWidth / 2), centerY + 170, btnWidth, btnHeight};
-    multi->btnContinuar.state = BTN_NORMAL;
+  multi->btnContinuar.rect =
+      (SDL_Rect){centerX - (btnWidth / 2), centerY + 170, btnWidth, btnHeight};
+  multi->btnContinuar.state = BTN_NORMAL;
 
-    // Labels
-    SDL_Color white = {255,255,255,255};
-    if(lblCreate(&multi->lblInputName1, renderer, assets->font, "Ingresa nombre de 1P", white) != OK) return SDL_ERR;
-    multi->lblInputName1.rect.x = multi->btnInputName1.rect.x + (multi->btnInputName1.rect.w - multi->lblInputName1.rect.w) / 2;
-    multi->lblInputName1.rect.y = multi->btnInputName1.rect.y - multi->lblInputName1.rect.h - 10;
+  // Labels
+  SDL_Color white = {255, 255, 255, 255};
+  if (lblCreate(&multi->lblInputName1, renderer, assets->font,
+                "Ingresa nombre de 1P", white) != OK)
+    return SDL_ERR;
+  multi->lblInputName1.rect.x =
+      multi->btnInputName1.rect.x +
+      (multi->btnInputName1.rect.w - multi->lblInputName1.rect.w) / 2;
+  multi->lblInputName1.rect.y =
+      multi->btnInputName1.rect.y - multi->lblInputName1.rect.h - 10;
 
-    if(lblCreate(&multi->lblInputName2, renderer, assets->font, "Ingresa nombre de 2P", white) != OK) return SDL_ERR;
-    multi->lblInputName2.rect.x = multi->btnInputName2.rect.x + (multi->btnInputName2.rect.w - multi->lblInputName2.rect.w) / 2;
-    multi->lblInputName2.rect.y = multi->btnInputName2.rect.y - multi->lblInputName2.rect.h - 10;
+  if (lblCreate(&multi->lblInputName2, renderer, assets->font,
+                "Ingresa nombre de 2P", white) != OK)
+    return SDL_ERR;
+  multi->lblInputName2.rect.x =
+      multi->btnInputName2.rect.x +
+      (multi->btnInputName2.rect.w - multi->lblInputName2.rect.w) / 2;
+  multi->lblInputName2.rect.y =
+      multi->btnInputName2.rect.y - multi->lblInputName2.rect.h - 10;
 
-    if(lblCreate(&multi->lblContinuar, renderer, assets->font, "Continuar", white) != OK) return SDL_ERR;
-    multi->lblContinuar.rect.x = multi->btnContinuar.rect.x + (multi->btnContinuar.rect.w - multi->lblContinuar.rect.w) / 2;
-    multi->lblContinuar.rect.y = multi->btnContinuar.rect.y + (multi->btnContinuar.rect.h - multi->lblContinuar.rect.h) / 2;
+  if (lblCreate(&multi->lblContinuar, renderer, assets->font, "Continuar",
+                white) != OK)
+    return SDL_ERR;
+  multi->lblContinuar.rect.x =
+      multi->btnContinuar.rect.x +
+      (multi->btnContinuar.rect.w - multi->lblContinuar.rect.w) / 2;
+  multi->lblContinuar.rect.y =
+      multi->btnContinuar.rect.y +
+      (multi->btnContinuar.rect.h - multi->lblContinuar.rect.h) / 2;
 
-    // Limpieza de memoria
-    memset(multi->textInput1, 0, sizeof(multi->textInput1));
-    memset(multi->textInput2, 0, sizeof(multi->textInput2));
-    multi->textInputLen1 = 0;
-    multi->textInputLen2 = 0;
+  // Limpieza de memoria
+  memset(multi->textInput1, 0, sizeof(multi->textInput1));
+  memset(multi->textInput2, 0, sizeof(multi->textInput2));
+  multi->textInputLen1 = 0;
+  multi->textInputLen2 = 0;
+  multi->textActive1 = 0;
+  multi->textActive2 = 0;
+
+  // carga sonidos
+  multi->btnBack.melody = sound_load(CLICK);
+  multi->btnContinuar.melody = sound_load(CLICK);
+  if (!multi->btnBack.melody || !multi->btnContinuar.melody) {
+    fprintf(stderr, "No se pudo cargar el sonido.");
+    sound_finish();
+  }
+
+  return OK;
+}
+
+void multiPlayerUpdate(tMultiplayerScreen *multi, tInput *input,
+                       ScreenType *currentScreen, tGame *game) {
+  btnUpdate(&multi->btnContinuar, input);
+
+  // BACK
+  if (input->mouseReleased &&
+      pointInRect(input->mouseX, input->mouseY, &multi->btnBack.rect)) {
     multi->textActive1 = 0;
     multi->textActive2 = 0;
+    input->textActive = 0;
+    SDL_StopTextInput();
+    input->textInput[0] = '\0';
+    input->textInputLen = 0;
+    *currentScreen = SCREEN_MAIN;
 
-    //carga sonidos
-    multi->btnBack.melody = sound_load(CLICK);
-    multi->btnContinuar.melody = sound_load(CLICK);
-    if(!multi->btnBack.melody || !multi->btnContinuar.melody)
-    {
-        fprintf(stderr,"No se pudo cargar el sonido.");
-        sound_finish();
-    }
+    // repruduce sonido
+    sound_play(multi->btnBack.melody, 0);
+    return;
+  }
 
-    return OK;
-}
-
-void multiPlayerUpdate(tMultiplayerScreen* multi, tInput* input, ScreenType* currentScreen, tGame* game)
-{
-    btnUpdate(&multi->btnContinuar, input);
-
-    // BACK
-    if(input->mouseReleased && pointInRect(input->mouseX, input->mouseY, &multi->btnBack.rect))
-    {
-        multi->textActive1 = 0; multi->textActive2 = 0;
-        input->textActive = 0;
-        SDL_StopTextInput();
-        input->textInput[0] = '\0';
-        input->textInputLen = 0;
-        *currentScreen = SCREEN_MAIN;
-
-        //repruduce sonido
-        sound_play(multi->btnBack.melody,0);
-        return;
-    }
-
-    // CLICKS EN INPUTS
-    if(input->mouseReleased)
-    {
-        // 1. Click en Input 1
-        if(pointInRect(input->mouseX, input->mouseY, &multi->btnInputName1.rect))
-        {
-            if(!multi->textActive1)
-            {
-                // Si venimos del 2, guardamos su estado
-                if (multi->textActive2) {
-                    strncpy(multi->textInput2, input->textInput, MAX_TEXT_INPUT - 1);
-                    multi->textInputLen2 = (int)strlen(multi->textInput2);
-                }
-
-                multi->textActive1 = 1;
-                multi->textActive2 = 0;
-                input->textActive = 1;
-
-                // Cargamos el texto del 1 al Input Global
-                strncpy(input->textInput, multi->textInput1, MAX_TEXT_INPUT - 1);
-                input->textInput[MAX_TEXT_INPUT - 1] = '\0';
-
-                // CORRECCION: Recalcular longitud real para que el backspace sepa dónde está
-                input->textInputLen = (int)strlen(input->textInput);
-
-                SDL_StartTextInput();
-            }
+  // CLICKS EN INPUTS
+  if (input->mouseReleased) {
+    // 1. Click en Input 1
+    if (pointInRect(input->mouseX, input->mouseY, &multi->btnInputName1.rect)) {
+      if (!multi->textActive1) {
+        // Si venimos del 2, guardamos su estado
+        if (multi->textActive2) {
+          strncpy(multi->textInput2, input->textInput, MAX_TEXT_INPUT - 1);
+          multi->textInputLen2 = (int)strlen(multi->textInput2);
         }
-        // 2. Click en Input 2
-        else if(pointInRect(input->mouseX, input->mouseY, &multi->btnInputName2.rect))
-        {
-            if(!multi->textActive2)
-            {
-                // Si venimos del 1, guardamos su estado
-                if (multi->textActive1) {
-                    strncpy(multi->textInput1, input->textInput, MAX_TEXT_INPUT - 1);
-                    multi->textInputLen1 = (int)strlen(multi->textInput1);
-                }
 
-                multi->textActive2 = 1;
-                multi->textActive1 = 0;
-                input->textActive = 1;
+        multi->textActive1 = 1;
+        multi->textActive2 = 0;
+        input->textActive = 1;
 
-                // Cargamos el texto del 2 al Input Global
-                strncpy(input->textInput, multi->textInput2, MAX_TEXT_INPUT - 1);
-                input->textInput[MAX_TEXT_INPUT - 1] = '\0';
+        // Cargamos el texto del 1 al Input Global
+        strncpy(input->textInput, multi->textInput1, MAX_TEXT_INPUT - 1);
+        input->textInput[MAX_TEXT_INPUT - 1] = '\0';
 
-                // CORRECCION: Recalcular longitud real
-                input->textInputLen = (int)strlen(input->textInput);
+        // CORRECCION: Recalcular longitud real para que el backspace sepa dónde
+        // está
+        input->textInputLen = (int)strlen(input->textInput);
 
-                SDL_StartTextInput();
-            }
-        }
-        // 3. Click Afuera
-        else if (!pointInRect(input->mouseX, input->mouseY, &multi->btnContinuar.rect))
-        {
-            if(multi->textActive1) {
-                strncpy(multi->textInput1, input->textInput, MAX_TEXT_INPUT - 1);
-                multi->textInputLen1 = (int)strlen(multi->textInput1);
-            } else if (multi->textActive2) {
-                strncpy(multi->textInput2, input->textInput, MAX_TEXT_INPUT - 1);
-                multi->textInputLen2 = (int)strlen(multi->textInput2);
-            }
-            multi->textActive1 = 0; multi->textActive2 = 0;
-            input->textActive = 0;
-            SDL_StopTextInput();
-        }
+        SDL_StartTextInput();
+      }
     }
+    // 2. Click en Input 2
+    else if (pointInRect(input->mouseX, input->mouseY,
+                         &multi->btnInputName2.rect)) {
+      if (!multi->textActive2) {
+        // Si venimos del 1, guardamos su estado
+        if (multi->textActive1) {
+          strncpy(multi->textInput1, input->textInput, MAX_TEXT_INPUT - 1);
+          multi->textInputLen1 = (int)strlen(multi->textInput1);
+        }
 
-    // SINCRONIZACIÓN FRAME A FRAME
-    if(multi->textActive1)
-    {
+        multi->textActive2 = 1;
+        multi->textActive1 = 0;
+        input->textActive = 1;
+
+        // Cargamos el texto del 2 al Input Global
+        strncpy(input->textInput, multi->textInput2, MAX_TEXT_INPUT - 1);
+        input->textInput[MAX_TEXT_INPUT - 1] = '\0';
+
+        // CORRECCION: Recalcular longitud real
+        input->textInputLen = (int)strlen(input->textInput);
+
+        SDL_StartTextInput();
+      }
+    }
+    // 3. Click Afuera
+    else if (!pointInRect(input->mouseX, input->mouseY,
+                          &multi->btnContinuar.rect)) {
+      if (multi->textActive1) {
         strncpy(multi->textInput1, input->textInput, MAX_TEXT_INPUT - 1);
-        multi->textInput1[MAX_TEXT_INPUT - 1] = '\0';
-        multi->textInputLen1 = input->textInputLen;
-    }
-    else if(multi->textActive2)
-    {
+        multi->textInputLen1 = (int)strlen(multi->textInput1);
+      } else if (multi->textActive2) {
         strncpy(multi->textInput2, input->textInput, MAX_TEXT_INPUT - 1);
-        multi->textInput2[MAX_TEXT_INPUT - 1] = '\0';
-        multi->textInputLen2 = input->textInputLen;
+        multi->textInputLen2 = (int)strlen(multi->textInput2);
+      }
+      multi->textActive1 = 0;
+      multi->textActive2 = 0;
+      input->textActive = 0;
+      SDL_StopTextInput();
     }
+  }
 
-    // CONTINUAR
-    if(input->mouseReleased && pointInRect(input->mouseX, input->mouseY, &multi->btnContinuar.rect))
-    {
-        if(multi->textActive1) strncpy(multi->textInput1, input->textInput, MAX_TEXT_INPUT-1);
-        if(multi->textActive2) strncpy(multi->textInput2, input->textInput, MAX_TEXT_INPUT-1);
+  // SINCRONIZACIÓN FRAME A FRAME
+  if (multi->textActive1) {
+    strncpy(multi->textInput1, input->textInput, MAX_TEXT_INPUT - 1);
+    multi->textInput1[MAX_TEXT_INPUT - 1] = '\0';
+    multi->textInputLen1 = input->textInputLen;
+  } else if (multi->textActive2) {
+    strncpy(multi->textInput2, input->textInput, MAX_TEXT_INPUT - 1);
+    multi->textInput2[MAX_TEXT_INPUT - 1] = '\0';
+    multi->textInputLen2 = input->textInputLen;
+  }
 
-        if(strlen(multi->textInput1) > 0) strcpy(game->players[0].namePlayer, multi->textInput1);
-        else strcpy(game->players[0].namePlayer, "Player 1");
+  // CONTINUAR
+  if (input->mouseReleased &&
+      pointInRect(input->mouseX, input->mouseY, &multi->btnContinuar.rect)) {
+    if (multi->textActive1)
+      strncpy(multi->textInput1, input->textInput, MAX_TEXT_INPUT - 1);
+    if (multi->textActive2)
+      strncpy(multi->textInput2, input->textInput, MAX_TEXT_INPUT - 1);
 
-        if(strlen(multi->textInput2) > 0) strcpy(game->players[1].namePlayer, multi->textInput2);
-        else strcpy(game->players[1].namePlayer, "Player 2");
+    if (strlen(multi->textInput1) > 0)
+      strcpy(game->players[0].namePlayer, multi->textInput1);
+    else
+      strcpy(game->players[0].namePlayer, "Player 1");
 
-        multi->textActive1 = 0; multi->textActive2 = 0;
-        input->textActive = 0;
-        SDL_StopTextInput();
-        input->textInput[0] = '\0';
-        input->textInputLen = 0;
-        *currentScreen = SCREEN_SET_CARDS;
+    if (strlen(multi->textInput2) > 0)
+      strcpy(game->players[1].namePlayer, multi->textInput2);
+    else
+      strcpy(game->players[1].namePlayer, "Player 2");
 
-        //Reproduce sonido
-        sound_play(multi->btnContinuar.melody,0);
-    }
+    multi->textActive1 = 0;
+    multi->textActive2 = 0;
+    input->textActive = 0;
+    SDL_StopTextInput();
+    input->textInput[0] = '\0';
+    input->textInputLen = 0;
+    *currentScreen = SCREEN_SET_CARDS;
+
+    // Reproduce sonido
+    sound_play(multi->btnContinuar.melody, 0);
+  }
 }
 
-void multiPlayerRender(SDL_Renderer* renderer, tMultiplayerScreen* multi, tAssets* assets, tInput* input)
-{
-    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
-    SDL_RenderCopy(renderer, assets->logo, NULL, &multi->logoRect);
-    SDL_RenderCopy(renderer, assets->back, NULL, &multi->btnBack.rect);
+void multiPlayerRender(SDL_Renderer *renderer, tMultiplayerScreen *multi,
+                       tAssets *assets, tInput *input) {
+  SDL_RenderCopy(renderer, assets->background, NULL, NULL);
+  SDL_RenderCopy(renderer, assets->logo, NULL, &multi->logoRect);
+  SDL_RenderCopy(renderer, assets->back, NULL, &multi->btnBack.rect);
 
-    SDL_Texture* tex;
-    SDL_Color txtColor = {255,255,255,255};
+  SDL_Texture *tex;
+  SDL_Color txtColor = {255, 255, 255, 255};
 
-    // --- INPUT 1 ---
-    SDL_RenderCopy(renderer, assets->buttonNormal, NULL, &multi->btnInputName1.rect);
-    SDL_RenderCopy(renderer, multi->lblInputName1.texture, NULL, &multi->lblInputName1.rect);
+  // --- INPUT 1 ---
+  SDL_RenderCopy(renderer, assets->buttonNormal, NULL,
+                 &multi->btnInputName1.rect);
+  SDL_RenderCopy(renderer, multi->lblInputName1.texture, NULL,
+                 &multi->lblInputName1.rect);
 
-    // Usamos la variable local o global según corresponda
-    const char* txt1 = multi->textActive1 ? input->textInput : multi->textInput1;
+  // Usamos la variable local o global según corresponda
+  const char *txt1 = multi->textActive1 ? input->textInput : multi->textInput1;
 
-    if(strlen(txt1) > 0 || multi->textActive1)
-    {
-        SDL_Surface* surf = TTF_RenderText_Blended(assets->font, (strlen(txt1)>0)?txt1:" ", txtColor);
-        if(surf) {
-            SDL_Texture* txtTex = SDL_CreateTextureFromSurface(renderer, surf);
-            if(txtTex) {
-                int tw, th;
-                SDL_QueryTexture(txtTex, NULL, NULL, &tw, &th);
-                SDL_Rect dst = multi->btnInputName1.rect;
-                dst.x += 50; dst.y += (dst.h - th)/2; dst.w = tw; dst.h = th;
+  if (strlen(txt1) > 0 || multi->textActive1) {
+    SDL_Surface *surf = TTF_RenderText_Blended(
+        assets->font, (strlen(txt1) > 0) ? txt1 : " ", txtColor);
+    if (surf) {
+      SDL_Texture *txtTex = SDL_CreateTextureFromSurface(renderer, surf);
+      if (txtTex) {
+        int tw, th;
+        SDL_QueryTexture(txtTex, NULL, NULL, &tw, &th);
+        SDL_Rect dst = multi->btnInputName1.rect;
+        dst.x += 50;
+        dst.y += (dst.h - th) / 2;
+        dst.w = tw;
+        dst.h = th;
 
-                if(strlen(txt1)>0) SDL_RenderCopy(renderer, txtTex, NULL, &dst);
+        if (strlen(txt1) > 0)
+          SDL_RenderCopy(renderer, txtTex, NULL, &dst);
 
-                if(multi->textActive1) {
-                    int cx = dst.x + (strlen(txt1)>0 ? dst.w : 0) + 2;
-                    SDL_SetRenderDrawColor(renderer, 255,255,255,255);
-                    SDL_RenderDrawLine(renderer, cx, dst.y, cx, dst.y + dst.h);
-                }
-                SDL_DestroyTexture(txtTex);
-            }
-            SDL_FreeSurface(surf);
+        if (multi->textActive1) {
+          int cx = dst.x + (strlen(txt1) > 0 ? dst.w : 0) + 2;
+          SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+          SDL_RenderDrawLine(renderer, cx, dst.y, cx, dst.y + dst.h);
         }
+        SDL_DestroyTexture(txtTex);
+      }
+      SDL_FreeSurface(surf);
     }
+  }
 
-    // --- INPUT 2 ---
-    SDL_RenderCopy(renderer, assets->buttonNormal, NULL, &multi->btnInputName2.rect);
-    SDL_RenderCopy(renderer, multi->lblInputName2.texture, NULL, &multi->lblInputName2.rect);
+  // --- INPUT 2 ---
+  SDL_RenderCopy(renderer, assets->buttonNormal, NULL,
+                 &multi->btnInputName2.rect);
+  SDL_RenderCopy(renderer, multi->lblInputName2.texture, NULL,
+                 &multi->lblInputName2.rect);
 
-    const char* txt2 = multi->textActive2 ? input->textInput : multi->textInput2;
-    if(strlen(txt2) > 0 || multi->textActive2)
-    {
-        SDL_Surface* surf = TTF_RenderText_Blended(assets->font, (strlen(txt2)>0)?txt2:" ", txtColor);
-        if(surf) {
-            SDL_Texture* txtTex = SDL_CreateTextureFromSurface(renderer, surf);
-            if(txtTex) {
-                int tw, th;
-                SDL_QueryTexture(txtTex, NULL, NULL, &tw, &th);
-                SDL_Rect dst = multi->btnInputName2.rect;
-                dst.x += 50; dst.y += (dst.h - th)/2; dst.w = tw; dst.h = th;
+  const char *txt2 = multi->textActive2 ? input->textInput : multi->textInput2;
+  if (strlen(txt2) > 0 || multi->textActive2) {
+    SDL_Surface *surf = TTF_RenderText_Blended(
+        assets->font, (strlen(txt2) > 0) ? txt2 : " ", txtColor);
+    if (surf) {
+      SDL_Texture *txtTex = SDL_CreateTextureFromSurface(renderer, surf);
+      if (txtTex) {
+        int tw, th;
+        SDL_QueryTexture(txtTex, NULL, NULL, &tw, &th);
+        SDL_Rect dst = multi->btnInputName2.rect;
+        dst.x += 50;
+        dst.y += (dst.h - th) / 2;
+        dst.w = tw;
+        dst.h = th;
 
-                if(strlen(txt2)>0) SDL_RenderCopy(renderer, txtTex, NULL, &dst);
+        if (strlen(txt2) > 0)
+          SDL_RenderCopy(renderer, txtTex, NULL, &dst);
 
-                if(multi->textActive2) {
-                    int cx = dst.x + (strlen(txt2)>0 ? dst.w : 0) + 2;
-                    SDL_SetRenderDrawColor(renderer, 255,255,255,255);
-                    SDL_RenderDrawLine(renderer, cx, dst.y, cx, dst.y + dst.h);
-                }
-                SDL_DestroyTexture(txtTex);
-            }
-            SDL_FreeSurface(surf);
+        if (multi->textActive2) {
+          int cx = dst.x + (strlen(txt2) > 0 ? dst.w : 0) + 2;
+          SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+          SDL_RenderDrawLine(renderer, cx, dst.y, cx, dst.y + dst.h);
         }
+        SDL_DestroyTexture(txtTex);
+      }
+      SDL_FreeSurface(surf);
     }
+  }
 
-    // Continuar
-    switch(multi->btnContinuar.state) {
-        case BTN_NORMAL: tex = assets->buttonNormal; break;
-        case BTN_HOVER: tex = assets->buttonHover; break;
-        case BTN_PRESSED: tex = assets->buttonPressed; break;
-        default: tex = assets->buttonNormal; break;
-    }
-    SDL_RenderCopy(renderer, tex, NULL, &multi->btnContinuar.rect);
-    SDL_RenderCopy(renderer, multi->lblContinuar.texture, NULL, &multi->lblContinuar.rect);
+  // Continuar
+  switch (multi->btnContinuar.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &multi->btnContinuar.rect);
+  SDL_RenderCopy(renderer, multi->lblContinuar.texture, NULL,
+                 &multi->lblContinuar.rect);
 }
 
-void multiPlayerDestroy(tMultiplayerScreen* multi)
-{
-    if(multi->lblInputName1.texture) SDL_DestroyTexture(multi->lblInputName1.texture);
-    if(multi->lblInputName2.texture) SDL_DestroyTexture(multi->lblInputName2.texture);
-    if(multi->lblContinuar.texture) SDL_DestroyTexture(multi->lblContinuar.texture);
-    //destroy music
-    sound_destroy(multi->btnBack.melody);
-    sound_destroy(multi->btnContinuar.melody);
+void multiPlayerDestroy(tMultiplayerScreen *multi) {
+  if (multi->lblInputName1.texture)
+    SDL_DestroyTexture(multi->lblInputName1.texture);
+  if (multi->lblInputName2.texture)
+    SDL_DestroyTexture(multi->lblInputName2.texture);
+  if (multi->lblContinuar.texture)
+    SDL_DestroyTexture(multi->lblContinuar.texture);
+  // destroy music
+  sound_destroy(multi->btnBack.melody);
+  sound_destroy(multi->btnContinuar.melody);
 }
 
 // =========================================================
 // SETCARD MENU
 // =========================================================
 
-int setCardMenuInit(tSetCardMenu* menu, SDL_Renderer* renderer, tAssets* assets)
-{
-    int centerX = SCREEN_WIDTH / 2;
-    int centerY = SCREEN_HEIGHT / 2;
-    int btnWidth = BTN_W;
-    int btnHeight = BTN_H;
+int setCardMenuInit(tSetCardMenu *menu, SDL_Renderer *renderer,
+                    tAssets *assets) {
+  int centerX = SCREEN_WIDTH / 2;
+  int centerY = SCREEN_HEIGHT / 2;
+  int btnWidth = BTN_W;
+  int btnHeight = BTN_H;
 
-    // Logo
-    menu->logoRect = (SDL_Rect){centerX - (LOGO_W/2), 10, LOGO_W, LOGO_H};
+  // Logo
+  menu->logoRect = (SDL_Rect){centerX - (LOGO_W / 2), 10, LOGO_W, LOGO_H};
 
-    // Botones
-    menu->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
+  // Botones
+  menu->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
 
-    menu->btn1S.rect = (SDL_Rect){centerX - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
-    menu->btn1S.state = BTN_NORMAL;
+  menu->btn1S.rect =
+      (SDL_Rect){centerX - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
+  menu->btn1S.state = BTN_NORMAL;
 
-    menu->btn2S = menu->btn1S;
-    menu->btn2S.rect.y += 90;
+  menu->btn2S = menu->btn1S;
+  menu->btn2S.rect.y += 90;
 
-    SDL_Color white = {255,255,255,255};
+  SDL_Color white = {255, 255, 255, 255};
 
-    if(lblCreate(&menu->lbl1S, renderer, assets->font, "Medieval", white) != OK) return SDL_ERR;
-    menu->lbl1S.rect.x = menu->btn1S.rect.x + (menu->btn1S.rect.w - menu->lbl1S.rect.w)/2;
-    menu->lbl1S.rect.y = menu->btn1S.rect.y + (menu->btn1S.rect.h - menu->lbl1S.rect.h)/2;
+  if (lblCreate(&menu->lbl1S, renderer, assets->font, "Medieval", white) != OK)
+    return SDL_ERR;
+  menu->lbl1S.rect.x =
+      menu->btn1S.rect.x + (menu->btn1S.rect.w - menu->lbl1S.rect.w) / 2;
+  menu->lbl1S.rect.y =
+      menu->btn1S.rect.y + (menu->btn1S.rect.h - menu->lbl1S.rect.h) / 2;
 
-    if(lblCreate(&menu->lbl2S, renderer, assets->font, "Griego", white) != OK) return SDL_ERR;
-    menu->lbl2S.rect.x = menu->btn2S.rect.x + (menu->btn2S.rect.w - menu->lbl2S.rect.w)/2;
-    menu->lbl2S.rect.y = menu->btn2S.rect.y + (menu->btn2S.rect.h - menu->lbl2S.rect.h)/2;
+  if (lblCreate(&menu->lbl2S, renderer, assets->font, "Griego", white) != OK)
+    return SDL_ERR;
+  menu->lbl2S.rect.x =
+      menu->btn2S.rect.x + (menu->btn2S.rect.w - menu->lbl2S.rect.w) / 2;
+  menu->lbl2S.rect.y =
+      menu->btn2S.rect.y + (menu->btn2S.rect.h - menu->lbl2S.rect.h) / 2;
 
-    //carga audio
-    menu->btn1S.melody = sound_load(CLICK);
-    menu->btn2S.melody = sound_load(CLICK);
-    menu->btnBack.melody = sound_load(CLICK);
-    if(!menu->btn1S.melody || !menu->btn2S.melody || !menu->btnBack.melody)
-    {
-        fprintf(stderr,"No se pudo cargar el sonido.");
-        sound_finish();
-    }
+  // carga audio
+  menu->btn1S.melody = sound_load(CLICK);
+  menu->btn2S.melody = sound_load(CLICK);
+  menu->btnBack.melody = sound_load(CLICK);
+  if (!menu->btn1S.melody || !menu->btn2S.melody || !menu->btnBack.melody) {
+    fprintf(stderr, "No se pudo cargar el sonido.");
+    sound_finish();
+  }
 
-    return OK;
+  return OK;
 }
 
-void setCardMenuUpdate(tSetCardMenu* menu, tInput* input, ScreenType* currentScreen, ScreenType PreviousScreen)
-{
-    btnUpdate(&menu->btn1S, input);
-    btnUpdate(&menu->btn2S, input);
-    btnUpdate(&menu->btnBack, input);
+void setCardMenuUpdate(tSetCardMenu *menu, tInput *input,
+                       ScreenType *currentScreen, ScreenType PreviousScreen) {
+  btnUpdate(&menu->btn1S, input);
+  btnUpdate(&menu->btn2S, input);
+  btnUpdate(&menu->btnBack, input);
 
-    if(input->mouseReleased)
-    {
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btn1S.rect))
-        {
-            strcpy(menu->setCardChoosen, "Medieval");
-            *currentScreen = SCREEN_SET_DIFFICULT;
-            sound_play(menu->btn1S.melody,0);//reproduce sonido
-            return;
-        }
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btn2S.rect))
-        {
-            strcpy(menu->setCardChoosen, "Griego");
-            *currentScreen = SCREEN_SET_DIFFICULT;
-            sound_play(menu->btn2S.melody,0);//reproduce sonido
-            return;
-        }
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnBack.rect))
-        {
-            *currentScreen = PreviousScreen;
-            sound_play(menu->btnBack.melody,0);//reproduce sonido
-        }
+  if (input->mouseReleased) {
+    if (pointInRect(input->mouseX, input->mouseY, &menu->btn1S.rect)) {
+      strcpy(menu->setCardChoosen, "Medieval");
+      *currentScreen = SCREEN_SET_DIFFICULT;
+      sound_play(menu->btn1S.melody, 0); // reproduce sonido
+      return;
     }
+    if (pointInRect(input->mouseX, input->mouseY, &menu->btn2S.rect)) {
+      strcpy(menu->setCardChoosen, "Griego");
+      *currentScreen = SCREEN_SET_DIFFICULT;
+      sound_play(menu->btn2S.melody, 0); // reproduce sonido
+      return;
+    }
+    if (pointInRect(input->mouseX, input->mouseY, &menu->btnBack.rect)) {
+      *currentScreen = PreviousScreen;
+      sound_play(menu->btnBack.melody, 0); // reproduce sonido
+    }
+  }
 }
 
-void setCardMenuRender(SDL_Renderer* renderer, tSetCardMenu* menu, tAssets* assets)
-{
-    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
-    SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
-    // Back button
-    SDL_RenderCopy(renderer, assets->back, NULL, &menu->btnBack.rect);
+void setCardMenuRender(SDL_Renderer *renderer, tSetCardMenu *menu,
+                       tAssets *assets) {
+  SDL_RenderCopy(renderer, assets->background, NULL, NULL);
+  SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
+  // Back button
+  SDL_RenderCopy(renderer, assets->back, NULL, &menu->btnBack.rect);
 
-    SDL_Texture* tex;
+  SDL_Texture *tex;
 
-    // 1S
-    switch(menu->btn1S.state) {
-        case BTN_NORMAL: tex = assets->buttonNormal; break;
-        case BTN_HOVER: tex = assets->buttonHover; break;
-        case BTN_PRESSED: tex = assets->buttonPressed; break;
-        default: tex = assets->buttonNormal; break;
-    }
-    SDL_RenderCopy(renderer, tex, NULL, &menu->btn1S.rect);
+  // 1S
+  switch (menu->btn1S.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &menu->btn1S.rect);
 
-    // 2S
-    switch(menu->btn2S.state) {
-        case BTN_NORMAL: tex = assets->buttonNormal; break;
-        case BTN_HOVER: tex = assets->buttonHover; break;
-        case BTN_PRESSED: tex = assets->buttonPressed; break;
-        default: tex = assets->buttonNormal; break;
-    }
-    SDL_RenderCopy(renderer, tex, NULL, &menu->btn2S.rect);
+  // 2S
+  switch (menu->btn2S.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &menu->btn2S.rect);
 
-    SDL_RenderCopy(renderer, menu->lbl1S.texture, NULL, &menu->lbl1S.rect);
-    SDL_RenderCopy(renderer, menu->lbl2S.texture, NULL, &menu->lbl2S.rect);
+  SDL_RenderCopy(renderer, menu->lbl1S.texture, NULL, &menu->lbl1S.rect);
+  SDL_RenderCopy(renderer, menu->lbl2S.texture, NULL, &menu->lbl2S.rect);
 }
 
-void setCardMenuDestroy(tSetCardMenu* menu)
-{
-    if(menu->lbl1S.texture) SDL_DestroyTexture(menu->lbl1S.texture);
-    if(menu->lbl2S.texture) SDL_DestroyTexture(menu->lbl2S.texture);
+void setCardMenuDestroy(tSetCardMenu *menu) {
+  if (menu->lbl1S.texture)
+    SDL_DestroyTexture(menu->lbl1S.texture);
+  if (menu->lbl2S.texture)
+    SDL_DestroyTexture(menu->lbl2S.texture);
 
-    //destroy music
-    sound_destroy(menu->btn1S.melody);
-    sound_destroy(menu->btn2S.melody);
-    sound_destroy(menu->btnBack.melody);
+  // destroy music
+  sound_destroy(menu->btn1S.melody);
+  sound_destroy(menu->btn2S.melody);
+  sound_destroy(menu->btnBack.melody);
 }
 
 // =========================================================
 // DIFF MENU
 // =========================================================
 
-int setDiffMenuInit(tSetDiffMenu* menu, SDL_Renderer* renderer, tAssets* assets)
-{
-    int centerX = SCREEN_WIDTH / 2;
-    int centerY = SCREEN_HEIGHT / 2;
-    int btnWidth = BTN_W;
-    int btnHeight = BTN_H;
+int setDiffMenuInit(tSetDiffMenu *menu, SDL_Renderer *renderer,
+                    tAssets *assets) {
+  int centerX = SCREEN_WIDTH / 2;
+  int centerY = SCREEN_HEIGHT / 2;
+  int btnWidth = BTN_W;
+  int btnHeight = BTN_H;
 
-    // Logo
-    menu->logoRect.w = LOGO_W;
-    menu->logoRect.h = LOGO_H;
-    menu->logoRect.x = centerX - (LOGO_W / 2);
-    menu->logoRect.y = 10;
+  // Logo
+  menu->logoRect.w = LOGO_W;
+  menu->logoRect.h = LOGO_H;
+  menu->logoRect.x = centerX - (LOGO_W / 2);
+  menu->logoRect.y = 10;
 
-    // Botones
-    menu->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
-    menu->btnBack.state = BTN_NORMAL;
+  // Botones
+  menu->btnBack.rect = (SDL_Rect){20, 20, 80, 80};
+  menu->btnBack.state = BTN_NORMAL;
 
-    menu->btnLow.rect = (SDL_Rect){centerX - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
-    menu->btnLow.state = BTN_NORMAL;
+  menu->btnLow.rect =
+      (SDL_Rect){centerX - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
+  menu->btnLow.state = BTN_NORMAL;
 
-    menu->btnMid = menu->btnLow;
-    menu->btnMid.rect.y += 90;
+  menu->btnMid = menu->btnLow;
+  menu->btnMid.rect.y += 90;
 
-    menu->btnHigh = menu->btnLow;
-    menu->btnHigh.rect.y += 180;
+  menu->btnHigh = menu->btnLow;
+  menu->btnHigh.rect.y += 180;
 
-    SDL_Color white = {255,255,255,255};
+  SDL_Color white = {255, 255, 255, 255};
 
-    if(lblCreate(&menu->lblLow, renderer, assets->font, "3x4", white) != OK) return SDL_ERR;
-    menu->lblLow.rect.x = menu->btnLow.rect.x + (menu->btnLow.rect.w - menu->lblLow.rect.w)/2;
-    menu->lblLow.rect.y = menu->btnLow.rect.y + (menu->btnLow.rect.h - menu->lblLow.rect.h)/2;
+  if (lblCreate(&menu->lblLow, renderer, assets->font, "3x4", white) != OK)
+    return SDL_ERR;
+  menu->lblLow.rect.x =
+      menu->btnLow.rect.x + (menu->btnLow.rect.w - menu->lblLow.rect.w) / 2;
+  menu->lblLow.rect.y =
+      menu->btnLow.rect.y + (menu->btnLow.rect.h - menu->lblLow.rect.h) / 2;
 
-    if(lblCreate(&menu->lblMid, renderer, assets->font, "4x4", white) != OK) return SDL_ERR;
-    menu->lblMid.rect.x = menu->btnMid.rect.x + (menu->btnMid.rect.w - menu->lblMid.rect.w)/2;
-    menu->lblMid.rect.y = menu->btnMid.rect.y + (menu->btnMid.rect.h - menu->lblMid.rect.h)/2;
+  if (lblCreate(&menu->lblMid, renderer, assets->font, "4x4", white) != OK)
+    return SDL_ERR;
+  menu->lblMid.rect.x =
+      menu->btnMid.rect.x + (menu->btnMid.rect.w - menu->lblMid.rect.w) / 2;
+  menu->lblMid.rect.y =
+      menu->btnMid.rect.y + (menu->btnMid.rect.h - menu->lblMid.rect.h) / 2;
 
-    if(lblCreate(&menu->lblHigh, renderer, assets->font, "4x5", white) != OK) return SDL_ERR;
-    menu->lblHigh.rect.x = menu->btnHigh.rect.x + (menu->btnHigh.rect.w - menu->lblHigh.rect.w)/2;
-    menu->lblHigh.rect.y = menu->btnHigh.rect.y + (menu->btnHigh.rect.h - menu->lblHigh.rect.h)/2;
+  if (lblCreate(&menu->lblHigh, renderer, assets->font, "4x5", white) != OK)
+    return SDL_ERR;
+  menu->lblHigh.rect.x =
+      menu->btnHigh.rect.x + (menu->btnHigh.rect.w - menu->lblHigh.rect.w) / 2;
+  menu->lblHigh.rect.y =
+      menu->btnHigh.rect.y + (menu->btnHigh.rect.h - menu->lblHigh.rect.h) / 2;
 
-    //carga music
-    menu->btnLow.melody = sound_load(CLICK);
-    menu->btnMid.melody = sound_load(CLICK);
-    menu->btnHigh.melody = sound_load(CLICK);
-    menu->btnBack.melody = sound_load(CLICK);
-    if(!menu->btnLow.melody || !menu->btnMid.melody || !menu->btnHigh.melody || !menu->btnBack.melody)
-    {
-        fprintf(stderr,"No se pudo cargar el sonido.");
-        sound_finish();
-    }
+  // carga music
+  menu->btnLow.melody = sound_load(CLICK);
+  menu->btnMid.melody = sound_load(CLICK);
+  menu->btnHigh.melody = sound_load(CLICK);
+  menu->btnBack.melody = sound_load(CLICK);
+  if (!menu->btnLow.melody || !menu->btnMid.melody || !menu->btnHigh.melody ||
+      !menu->btnBack.melody) {
+    fprintf(stderr, "No se pudo cargar el sonido.");
+    sound_finish();
+  }
 
-    return OK;
+  return OK;
 }
 
-void setDiffMenuUpdate(tSetDiffMenu* menu, tInput* input, ScreenType* currentScreen)
-{
-    btnUpdate(&menu->btnLow, input);
-    btnUpdate(&menu->btnMid, input);
-    btnUpdate(&menu->btnHigh, input);
-    btnUpdate(&menu->btnBack, input);
+void setDiffMenuUpdate(tSetDiffMenu *menu, tInput *input,
+                       ScreenType *currentScreen) {
+  btnUpdate(&menu->btnLow, input);
+  btnUpdate(&menu->btnMid, input);
+  btnUpdate(&menu->btnHigh, input);
+  btnUpdate(&menu->btnBack, input);
 
-    if(input->mouseReleased)
-    {
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnLow.rect))
-        {
-            *currentScreen = SCREEN_GAME_LOW;
-            sound_play(menu->btnLow.melody,0);//reproduce music
-            return;
-        }
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnMid.rect))
-        {
-            *currentScreen = SCREEN_GAME_MID;
-            sound_play(menu->btnMid.melody,0);//reproduce music
-            return;
-        }
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnHigh.rect))
-        {
-            *currentScreen = SCREEN_GAME_HIGH;
-            sound_play(menu->btnHigh.melody,0);//reproduce music
-            return;
-        }
-        if(pointInRect(input->mouseX, input->mouseY, &menu->btnBack.rect)) *currentScreen = SCREEN_SET_CARDS;
+  if (input->mouseReleased) {
+    if (pointInRect(input->mouseX, input->mouseY, &menu->btnLow.rect)) {
+      *currentScreen = SCREEN_GAME_LOW;
+      sound_play(menu->btnLow.melody, 0); // reproduce music
+      return;
     }
+    if (pointInRect(input->mouseX, input->mouseY, &menu->btnMid.rect)) {
+      *currentScreen = SCREEN_GAME_MID;
+      sound_play(menu->btnMid.melody, 0); // reproduce music
+      return;
+    }
+    if (pointInRect(input->mouseX, input->mouseY, &menu->btnHigh.rect)) {
+      *currentScreen = SCREEN_GAME_HIGH;
+      sound_play(menu->btnHigh.melody, 0); // reproduce music
+      return;
+    }
+    if (pointInRect(input->mouseX, input->mouseY, &menu->btnBack.rect))
+      *currentScreen = SCREEN_SET_CARDS;
+  }
 }
 
-void setDiffMenuRender(SDL_Renderer* renderer, tSetDiffMenu* menu, tAssets* assets)
-{
-    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
-    SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
+void setDiffMenuRender(SDL_Renderer *renderer, tSetDiffMenu *menu,
+                       tAssets *assets) {
+  SDL_RenderCopy(renderer, assets->background, NULL, NULL);
+  SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
 
-    SDL_Texture* tex;
+  SDL_Texture *tex;
 
-    // Low
-    switch(menu->btnLow.state) {
-        case BTN_NORMAL: tex = assets->buttonNormal; break;
-        case BTN_HOVER: tex = assets->buttonHover; break;
-        case BTN_PRESSED: tex = assets->buttonPressed; break;
-        default: tex = assets->buttonNormal; break;
-    }
-    SDL_RenderCopy(renderer, tex, NULL, &menu->btnLow.rect);
+  // Low
+  switch (menu->btnLow.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &menu->btnLow.rect);
 
-    // Mid
-    switch(menu->btnMid.state) {
-        case BTN_NORMAL: tex = assets->buttonNormal; break;
-        case BTN_HOVER: tex = assets->buttonHover; break;
-        case BTN_PRESSED: tex = assets->buttonPressed; break;
-        default: tex = assets->buttonNormal; break;
-    }
-    SDL_RenderCopy(renderer, tex, NULL, &menu->btnMid.rect);
+  // Mid
+  switch (menu->btnMid.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &menu->btnMid.rect);
 
-    // High
-    switch(menu->btnHigh.state) {
-        case BTN_NORMAL: tex = assets->buttonNormal; break;
-        case BTN_HOVER: tex = assets->buttonHover; break;
-        case BTN_PRESSED: tex = assets->buttonPressed; break;
-        default: tex = assets->buttonNormal; break;
-    }
-    SDL_RenderCopy(renderer, tex, NULL, &menu->btnHigh.rect);
+  // High
+  switch (menu->btnHigh.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &menu->btnHigh.rect);
 
-    // Back button
-    SDL_RenderCopy(renderer, assets->back, NULL, &menu->btnBack.rect);
+  // Back button
+  SDL_RenderCopy(renderer, assets->back, NULL, &menu->btnBack.rect);
 
-    SDL_RenderCopy(renderer, menu->lblLow.texture, NULL, &menu->lblLow.rect);
-    SDL_RenderCopy(renderer, menu->lblMid.texture, NULL, &menu->lblMid.rect);
-    SDL_RenderCopy(renderer, menu->lblHigh.texture, NULL, &menu->lblHigh.rect);
+  SDL_RenderCopy(renderer, menu->lblLow.texture, NULL, &menu->lblLow.rect);
+  SDL_RenderCopy(renderer, menu->lblMid.texture, NULL, &menu->lblMid.rect);
+  SDL_RenderCopy(renderer, menu->lblHigh.texture, NULL, &menu->lblHigh.rect);
 }
 
-void setDiffMenuDestroy(tSetDiffMenu* menu)
-{
-    if(menu->lblLow.texture) SDL_DestroyTexture(menu->lblLow.texture);
-    if(menu->lblMid.texture) SDL_DestroyTexture(menu->lblMid.texture);
-    if(menu->lblHigh.texture) SDL_DestroyTexture(menu->lblHigh.texture);
-    //destroy music
-    sound_destroy(menu->btnLow.melody);
-    sound_destroy(menu->btnMid.melody);
-    sound_destroy(menu->btnHigh.melody);
-    sound_destroy(menu->btnBack.melody);
+void setDiffMenuDestroy(tSetDiffMenu *menu) {
+  if (menu->lblLow.texture)
+    SDL_DestroyTexture(menu->lblLow.texture);
+  if (menu->lblMid.texture)
+    SDL_DestroyTexture(menu->lblMid.texture);
+  if (menu->lblHigh.texture)
+    SDL_DestroyTexture(menu->lblHigh.texture);
+  // destroy music
+  sound_destroy(menu->btnLow.melody);
+  sound_destroy(menu->btnMid.melody);
+  sound_destroy(menu->btnHigh.melody);
+  sound_destroy(menu->btnBack.melody);
 }
 
 // =========================================================
 // GAME IN COURSE -- SP PLAYING
 // =========================================================
 
-int playSPInit(tPlaySPScreen* SP, SDL_Renderer* renderer, tAssets* assets, tGame* game, tBoard* board, tSetCardMenu* setCardMenu)
-{
-    SP->btnBack.rect = (SDL_Rect){10, 680, 80, 80};
-    SP->btnBack.state = BTN_NORMAL;
+int playSPInit(tPlaySPScreen *SP, SDL_Renderer *renderer, tAssets *assets,
+               tGame *game, tBoard *board, tSetCardMenu *setCardMenu) {
+  SP->btnBack.rect = (SDL_Rect){10, 680, 80, 80};
+  SP->btnBack.state = BTN_NORMAL;
 
-    SDL_Color white = {255,255,255,255};
-    if(lblCreate(&SP->lblPlayerName, renderer, assets->font, game->players[0].namePlayer, white) != OK)
-        return SDL_ERR;
+  SDL_Color white = {255, 255, 255, 255};
+  if (lblCreate(&SP->lblPlayerName, renderer, assets->font,
+                game->players[0].namePlayer, white) != OK)
+    return SDL_ERR;
 
-    SP->lblPlayerName.rect.x = 10;
-    SP->lblPlayerName.rect.y = 0;
+  SP->lblPlayerName.rect.x = 10;
+  SP->lblPlayerName.rect.y = 0;
 
-    char bufferScore[32];
-    snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[0].score);
+  char bufferScore[32];
+  snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[0].score);
 
-    if(lblCreate(&SP->lblPlayerScore, renderer, assets->font, bufferScore, white) != OK)
-        return SDL_ERR;
+  if (lblCreate(&SP->lblPlayerScore, renderer, assets->font, bufferScore,
+                white) != OK)
+    return SDL_ERR;
 
+  SP->lblPlayerScore.rect.x = 15;
+  SP->lblPlayerScore.rect.y = 50;
+
+  SP->selection.firstSelected = -1;
+  SP->selection.secondSelected = -1;
+  SP->selection.waiting = 0;
+  SP->selection.waitStart = 0;
+  ////////////////////
+  SP->scoreValue = game->players[0].score;
+  SP->scoreRendered = SP->scoreValue;
+  ////////////////////
+
+  if (strcmp(setCardMenu->setCardChoosen, "Medieval") == 0)
+    SP->activeSet = &assets->dsSet;
+  else
+    SP->activeSet = &assets->greekSet;
+
+  return OK;
+}
+
+void playSPUpdate(tPlaySPScreen *SP, tGame *game, tBoard *board, tInput *input,
+                  ScreenType *currentScreen) {
+  Uint32 currentTime = SDL_GetTicks();
+
+  if (SP->selection.waiting) {
+    if (currentTime - SP->selection.waitStart > 800) {
+      tCard *c1 = &board->cards[SP->selection.firstSelected];
+      tCard *c2 = &board->cards[SP->selection.secondSelected];
+
+      c1->isFlipped = 0;
+      c2->isFlipped = 0;
+
+      SP->selection.firstSelected = -1;
+      SP->selection.secondSelected = -1;
+      SP->selection.waiting = 0;
+    }
+
+    return;
+  }
+
+  if (!input->mousePressed)
+    return;
+
+  printf("Click detectado\n");
+
+  int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
+  if (clicked == -1)
+    return;
+
+  tCard *card = &board->cards[clicked];
+
+  if (card->isFlipped || card->isMatched)
+    return;
+
+  card->isFlipped = 1;
+
+  if (SP->selection.firstSelected == -1) {
+    SP->selection.firstSelected = clicked;
+  } else if (SP->selection.secondSelected == -1) {
+    if (clicked == SP->selection.firstSelected)
+      return;
+
+    SP->selection.secondSelected = clicked;
+
+    tCard *c1 = &board->cards[SP->selection.firstSelected];
+    tCard *c2 = &board->cards[SP->selection.secondSelected];
+
+    if (c1->id == c2->id) {
+      c1->isMatched = 1;
+      c2->isMatched = 1;
+
+      // game->players[0].score++; -> Rompia el pairsfound
+      gameOnPairResolved(game, 1);
+
+      SP->selection.firstSelected = -1;
+      SP->selection.secondSelected = -1;
+
+      sound_play(c2->sound_Matched, 0);
+    } else {
+      SP->selection.waiting = 1;
+      gameOnPairResolved(game, 0);
+      SP->scoreValue = game->players[0].score;
+      SP->selection.waitStart = currentTime;
+
+      sound_play(c2->sound_Not_Matched, 0);
+    }
+  }
+
+  // DEBUG DE PAIRSFOUNDS
+  // printf("Pairsfound %d\n", game->players[0].pairsFound);
+
+  if ((game->players[0].pairsFound == 6 && game->totalPairs == 6) ||
+      (game->players[0].pairsFound == 8 && game->totalPairs == 8) ||
+      (game->players[0].pairsFound == 10 && game->totalPairs == 10))
+    *currentScreen = SCREEN_GAMEOVER;
+  return;
+}
+
+void playSPRender(SDL_Renderer *renderer, tPlaySPScreen *SP, tAssets *assets,
+                  tBoard *board) {
+  if (SP->scoreRendered != SP->scoreValue) {
+    SP->scoreRendered = SP->scoreValue;
+
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "%d", SP->scoreRendered);
+
+    if (SP->lblPlayerScore.texture) {
+      SDL_DestroyTexture(SP->lblPlayerScore.texture);
+      SP->lblPlayerScore.texture = NULL;
+    }
+
+    SDL_Color white = {255, 255, 255, 255};
+    lblCreate(&SP->lblPlayerScore, renderer, assets->font, buffer, white);
+
+    // mantener pos fija
     SP->lblPlayerScore.rect.x = 15;
     SP->lblPlayerScore.rect.y = 50;
+  }
 
-    SP->selection.firstSelected = -1;
-    SP->selection.secondSelected = -1;
-    SP->selection.waiting = 0;
-    SP->selection.waitStart = 0;
-    ////////////////////
-    SP->scoreValue = game->players[0].score;
-    SP->scoreRendered = SP->scoreValue;
-    ////////////////////
+  SDL_RenderCopy(renderer, assets->backgroundGame, NULL, NULL);
+  SDL_RenderCopy(renderer, assets->back, NULL, &SP->btnBack.rect);
 
-    if(strcmp(setCardMenu->setCardChoosen, "Medieval") == 0)
-        SP->activeSet = &assets->dsSet;
-    else
-        SP->activeSet = &assets->greekSet;
+  SDL_RenderCopy(renderer, SP->lblPlayerName.texture, NULL,
+                 &SP->lblPlayerName.rect);
+  SDL_RenderCopy(renderer, SP->lblPlayerScore.texture, NULL,
+                 &SP->lblPlayerScore.rect);
 
-    return OK;
+  boardRender(renderer, board, SP->activeSet);
 }
 
-void playSPUpdate(tPlaySPScreen* SP, tGame* game, tBoard* board, tInput* input,ScreenType* currentScreen)
-{
-    Uint32 currentTime = SDL_GetTicks();
+void playSPDestroy(tPlaySPScreen *SP) {
+  if (!SP)
+    return;
 
-    if(SP->selection.waiting)
-    {
-        if(currentTime - SP->selection.waitStart > 800)
-        {
-            tCard* c1 = &board->cards[SP->selection.firstSelected];
-            tCard* c2 = &board->cards[SP->selection.secondSelected];
+  if (SP->lblBack.texture) {
+    SDL_DestroyTexture(SP->lblBack.texture);
+    SP->lblBack.texture = NULL;
+  }
 
-            c1->isFlipped = 0;
-            c2->isFlipped = 0;
+  if (SP->lblPlayerName.texture) {
+    SDL_DestroyTexture(SP->lblPlayerName.texture);
+    SP->lblPlayerName.texture = NULL;
+  }
 
-            SP->selection.firstSelected = -1;
-            SP->selection.secondSelected = -1;
-            SP->selection.waiting = 0;
-        }
-
-        return;
-    }
-
-    if(!input->mousePressed)
-        return;
-
-    printf("Click detectado\n");
-
-    int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
-    if(clicked == -1)
-        return;
-
-    tCard* card = &board->cards[clicked];
-
-    if(card->isFlipped || card->isMatched)
-        return;
-
-    card->isFlipped = 1;
-
-    if(SP->selection.firstSelected == -1)
-    {
-        SP->selection.firstSelected = clicked;
-    }
-    else if (SP->selection.secondSelected == -1)
-    {
-        if(clicked == SP->selection.firstSelected)
-            return;
-
-        SP->selection.secondSelected = clicked;
-
-        tCard* c1 = &board->cards[SP->selection.firstSelected];
-        tCard* c2 = &board->cards[SP->selection.secondSelected];
-
-        if(c1->id == c2->id)
-        {
-            c1->isMatched = 1;
-            c2->isMatched = 1;
-
-            game->players[0].score++;
-
-            SP->selection.firstSelected = -1;
-            SP->selection.secondSelected = -1;
-
-            sound_play(c2->sound_Matched,0);
-        }
-        else
-        {
-            SP->selection.waiting = 1;
-            gameOnPairResolved(game, 1);
-            SP->scoreValue = game->players[0].score;
-            SP->selection.waitStart = currentTime;
-
-            sound_play(c2->sound_Not_Matched,0);
-        }
-    }
-
-}
-
-void playSPRender(SDL_Renderer* renderer, tPlaySPScreen* SP, tAssets* assets, tBoard* board)
-{
-    if(SP->scoreRendered != SP->scoreValue)
-    {
-        SP->scoreRendered = SP->scoreValue;
-
-        char buffer[32];
-        snprintf(buffer, sizeof(buffer), "%d", SP->scoreRendered);
-
-        if(SP->lblPlayerScore.texture){
-            SDL_DestroyTexture(SP->lblPlayerScore.texture);
-            SP->lblPlayerScore.texture = NULL;
-        }
-
-        SDL_Color white = {255,255,255,255};
-        lblCreate(&SP->lblPlayerScore, renderer, assets->font, buffer, white);
-
-        // mantener pos fija
-        SP->lblPlayerScore.rect.x = 15;
-        SP->lblPlayerScore.rect.y = 50;
-    }
-
-    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
-    SDL_RenderCopy(renderer, assets->back, NULL, &SP->btnBack.rect);
-
-    SDL_RenderCopy(renderer, SP->lblPlayerName.texture, NULL, &SP->lblPlayerName.rect);
-    SDL_RenderCopy(renderer, SP->lblPlayerScore.texture, NULL, &SP->lblPlayerScore.rect);
-
-    boardRender(renderer, board, SP->activeSet);
-}
-
-void playSPDestroy(tPlaySPScreen* SP)
-{
-    if(!SP)
-        return;
-
-    if(SP->lblBack.texture)
-    {
-        SDL_DestroyTexture(SP->lblBack.texture);
-        SP->lblBack.texture = NULL;
-    }
-
-    if(SP->lblPlayerName.texture)
-    {
-        SDL_DestroyTexture(SP->lblPlayerName.texture);
-        SP->lblPlayerName.texture = NULL;
-    }
-
-    if(SP->lblPlayerScore.texture)
-    {
-        SDL_DestroyTexture(SP->lblPlayerScore.texture);
-        SP->lblPlayerScore.texture = NULL;
-    }
+  if (SP->lblPlayerScore.texture) {
+    SDL_DestroyTexture(SP->lblPlayerScore.texture);
+    SP->lblPlayerScore.texture = NULL;
+  }
 }
 
 // =========================================================
 // GAME IN COURSE -- MP PLAYING
 // =========================================================
 
-int playMPInit(tPlayMPScreen* MP, SDL_Renderer* renderer, tAssets* assets, tGame* game, tBoard* board, tSetCardMenu* setCardMenu)
-{
-    MP->btnBack.rect = (SDL_Rect){10, 680, 80, 80};
-    MP->btnBack.state = BTN_NORMAL;
+int playMPInit(tPlayMPScreen *MP, SDL_Renderer *renderer, tAssets *assets,
+               tGame *game, tBoard *board, tSetCardMenu *setCardMenu) {
+  MP->btnBack.rect = (SDL_Rect){10, 680, 80, 80};
+  MP->btnBack.state = BTN_NORMAL;
 
-    SDL_Color white = {255,255,255,255};
+  SDL_Color white = {255, 255, 255, 255};
 
-    /////////////////////player 1//////////////////////////////
-    if(lblCreate(&MP->lblPlayerName[0], renderer, assets->font, game->players[0].namePlayer, white) != OK)
-        return SDL_ERR;
+  /////////////////////player 1//////////////////////////////
+  if (lblCreate(&MP->lblPlayerName[0], renderer, assets->font,
+                game->players[0].namePlayer, white) != OK)
+    return SDL_ERR;
 
-    MP->lblPlayerName[0].rect.x = 10;
-    MP->lblPlayerName[0].rect.y = 10;
+  MP->lblPlayerName[0].rect.x = 10;
+  MP->lblPlayerName[0].rect.y = 10;
 
-    char bufferScore[32];
-    snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[0].score);
+  char bufferScore[32];
+  snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[0].score);
 
-    if(lblCreate(&MP->lblPlayerScore[0], renderer, assets->font, bufferScore, white) != OK)
-        return SDL_ERR;
+  if (lblCreate(&MP->lblPlayerScore[0], renderer, assets->font, bufferScore,
+                white) != OK)
+    return SDL_ERR;
 
-    MP->lblPlayerScore[0].rect.x = 10;
-    MP->lblPlayerScore[0].rect.y = 40;
-    ////////////////////////player 2////////////////////////////////////
-    if(lblCreate(&MP->lblPlayerName[1], renderer, assets->font, game->players[1].namePlayer, white) != OK)
-        return SDL_ERR;
+  MP->lblPlayerScore[0].rect.x = 10;
+  MP->lblPlayerScore[0].rect.y = 40;
+  ////////////////////////player 2////////////////////////////////////
+  if (lblCreate(&MP->lblPlayerName[1], renderer, assets->font,
+                game->players[1].namePlayer, white) != OK)
+    return SDL_ERR;
 
-    MP->lblPlayerName[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
-    MP->lblPlayerName[1].rect.y = 10;
+  MP->lblPlayerName[1].rect.x =
+      SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
+  MP->lblPlayerName[1].rect.y = 10;
 
-    snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[1].score);
+  snprintf(bufferScore, sizeof(bufferScore), "%d", game->players[1].score);
 
-    if(lblCreate(&MP->lblPlayerScore[1], renderer, assets->font, bufferScore, white) != OK)
-        return SDL_ERR;
+  if (lblCreate(&MP->lblPlayerScore[1], renderer, assets->font, bufferScore,
+                white) != OK)
+    return SDL_ERR;
 
-    MP->lblPlayerScore[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
-    MP->lblPlayerScore[1].rect.y = 40;
+  MP->lblPlayerScore[1].rect.x =
+      SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
+  MP->lblPlayerScore[1].rect.y = 40;
 
+  MP->lastPlayer = -1;
+  MP->selection.firstSelected = -1;
+  MP->selection.secondSelected = -1;
+  MP->selection.waiting = 0;
+  MP->selection.waitStart = 0;
 
-    MP->lastPlayer = -1;
-    MP->selection.firstSelected = -1;
-    MP->selection.secondSelected = -1;
-    MP->selection.waiting = 0;
-    MP->selection.waitStart = 0;
+  for (int i = 0; i < game->playerCount; i++) {
+    MP->scoreValue[i] = game->players[i].score;
+    MP->scoreRendered[i] = MP->scoreValue[i];
+  }
 
-    for(int i=0; i<game->playerCount; i++)
-    {
-        MP->scoreValue[i] = game->players[i].score;
-        MP->scoreRendered[i] = MP->scoreValue[i];
+  if (strcmp(setCardMenu->setCardChoosen, "Medieval") == 0)
+    MP->activeSet = &assets->dsSet;
+  else
+    MP->activeSet = &assets->greekSet;
 
-    }
-
-    if(strcmp(setCardMenu->setCardChoosen, "Medieval") == 0)
-        MP->activeSet = &assets->dsSet;
-    else
-        MP->activeSet = &assets->greekSet;
-
-    return OK;
+  return OK;
 }
 
-void playMPUpdate(tPlayMPScreen* MP, tGame* game, tBoard* board, tInput* input, SDL_Renderer* renderer, tAssets* assets)
-{
-    Uint32 currentTime = SDL_GetTicks();
+void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input,
+                  SDL_Renderer *renderer, tAssets *assets,
+                  ScreenType *currentScreen) {
+  Uint32 currentTime = SDL_GetTicks();
 
-    // Blindaje básico (evita eorror si algo está NULL)
-    if(!SP || !game || !board || !board->cards || !input)
-        return;
+  // Blindaje básico (evita error si algo está NULL)
+  if (!MP || !game || !board || !board->cards || !input)
+    return;
 
-    if(SP->selection.waiting)
-    {
-        // Blindaje de índices antes de acceder al array
-        if(SP->selection.firstSelected < 0 || SP->selection.firstSelected >= board->totalCards ||
-           SP->selection.secondSelected < 0 || SP->selection.secondSelected >= board->totalCards)
-        {
-            SP->selection.firstSelected = -1;
-            SP->selection.secondSelected = -1;
-            SP->selection.waiting = 0;
-            return;
-        }
-
-        if(currentTime - SP->selection.waitStart > 800)
-        {
-            tCard* c1 = &board->cards[SP->selection.firstSelected];
-            tCard* c2 = &board->cards[SP->selection.secondSelected];
-
-            c1->isFlipped = 0;
-            c2->isFlipped = 0;
-
-            SP->selection.firstSelected = -1;
-            SP->selection.secondSelected = -1;
-            SP->selection.waiting = 0;
-        }
-
-        return;
+  if (MP->selection.waiting) {
+    // Blindaje de índices antes de acceder al array
+    if (MP->selection.firstSelected < 0 ||
+        MP->selection.firstSelected >= board->totalCards ||
+        MP->selection.secondSelected < 0 ||
+        MP->selection.secondSelected >= board->totalCards) {
+      MP->selection.firstSelected = -1;
+      MP->selection.secondSelected = -1;
+      MP->selection.waiting = 0;
+      return;
     }
 
-    if(!input->mousePressed)
-        return;
+    if (currentTime - MP->selection.waitStart > 800) {
+      tCard *c1 = &board->cards[MP->selection.firstSelected];
+      tCard *c2 = &board->cards[MP->selection.secondSelected];
 
-    // debug:
-    // printf("Click detectado\n");
+      c1->isFlipped = 0;
+      c2->isFlipped = 0;
 
-    int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
-
-    // validar rango completo
-    if(clicked < 0 || clicked >= board->totalCards)
-        return;
-
-    tCard* card = &board->cards[clicked];
-
-    if(card->isFlipped || card->isMatched)
-        return;
-
-    card->isFlipped = 1;
-
-    if(SP->selection.firstSelected == -1)
-    {
-        SP->selection.firstSelected = clicked;
-        return;
+      MP->selection.firstSelected = -1;
+      MP->selection.secondSelected = -1;
+      MP->selection.waiting = 0;
     }
-    else if(SP->selection.secondSelected == -1)
-    {
-        if(clicked == SP->selection.firstSelected)
-            return;
 
-        SP->selection.secondSelected = clicked;
+    return;
+  }
 
-        // blindaje extra por seguridad
-        if(SP->selection.firstSelected < 0 || SP->selection.firstSelected >= board->totalCards ||
-           SP->selection.secondSelected < 0 || SP->selection.secondSelected >= board->totalCards)
-        {
-            SP->selection.firstSelected = -1;
-            SP->selection.secondSelected = -1;
-            SP->selection.waiting = 0;
-            return;
-        }
+  if (!input->mousePressed)
+    return;
 
-        tCard* c1 = &board->cards[SP->selection.firstSelected];
-        tCard* c2 = &board->cards[SP->selection.secondSelected];
+  // debug:
+  // printf("Click detectado\n");
 
-        if(c1->id == c2->id)
-        {
-            c1->isMatched = 1;
-            c2->isMatched = 1;
-            
-            // game->players[0].score++;
+  int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
 
-            // sumar SOLO cuando hay match (regla 100 por par)
-            gameOnPairResolved(game, 1); // match
+  // validar rango completo
+  if (clicked < 0 || clicked >= board->totalCards)
+    return;
 
-            // Copiamos el score para que Render refresque el label
-            SP->scoreValue = game->players[0].score;
+  tCard *card = &board->cards[clicked];
 
-            SP->selection.firstSelected = -1;
-            SP->selection.secondSelected = -1;
-            
-            // sound_play(c2->sound_Matched,0);
+  if (card->isFlipped || card->isMatched)
+    return;
 
-            // Null-check
-            if(c2->sound_Matched) sound_play(c2->sound_Matched, 0);
-        }
-        else
-        {
-            SP->selection.waiting = 1;
-            SP->selection.waitStart = currentTime;
+  card->isFlipped = 1;
 
-            // estaba MAL, porque 1 = match
-            // gameOnPairResolved(game, 1);
+  if (MP->selection.firstSelected == -1) {
+    MP->selection.firstSelected = clicked;
+    return;
+  } else if (MP->selection.secondSelected == -1) {
+    if (clicked == MP->selection.firstSelected)
+      return;
 
-            // no match
-            gameOnPairResolved(game, 0);
+    MP->selection.secondSelected = clicked;
 
-            // Antes tenia esto aca
-            // SP->scoreValue = game->players[0].score;
-            // (No hace falta, porque en no-match el score no cambia. Lo dejo comentado por si quieren.)
-            // SP->scoreValue = game->players[0].score;
-
-            // sound_play(c2->sound_Not_Matched,0);
-
-            // Null-check
-            if(c2->sound_Not_Matched) sound_play(c2->sound_Not_Matched, 0);
-        }
+    // blindaje extra por seguridad
+    if (MP->selection.firstSelected < 0 ||
+        MP->selection.firstSelected >= board->totalCards ||
+        MP->selection.secondSelected < 0 ||
+        MP->selection.secondSelected >= board->totalCards) {
+      MP->selection.firstSelected = -1;
+      MP->selection.secondSelected = -1;
+      MP->selection.waiting = 0;
+      return;
     }
+
+    tCard *c1 = &board->cards[MP->selection.firstSelected];
+    tCard *c2 = &board->cards[MP->selection.secondSelected];
+
+    if (c1->id == c2->id) {
+      c1->isMatched = 1;
+      c2->isMatched = 1;
+
+      // game->players[0].score++;
+
+      // sumar SOLO cuando hay match (regla 100 por par)
+      gameOnPairResolved(game, 1); // match
+
+      // Copiamos el score para que Render refresque el label
+      MP->scoreValue[0] = game->players[0].score;
+
+      MP->selection.firstSelected = -1;
+      MP->selection.secondSelected = -1;
+
+      // sound_play(c2->sound_Matched,0);
+
+      // Null-check
+      if (c2->sound_Matched)
+        sound_play(c2->sound_Matched, 0);
+    } else {
+      MP->selection.waiting = 1;
+      MP->selection.waitStart = currentTime;
+
+      // estaba MAL, porque 1 = match
+      // gameOnPairResolved(game, 1);
+
+      // no match
+      gameOnPairResolved(game, 0);
+
+      // Antes tenia esto aca
+      // SP->scoreValue = game->players[0].score;
+      // (No hace falta, porque en no-match el score no cambia. Lo dejo
+      // comentado por si quieren.) SP->scoreValue = game->players[0].score;
+
+      // sound_play(c2->sound_Not_Matched,0);
+
+      // Null-check
+      if (c2->sound_Not_Matched)
+        sound_play(c2->sound_Not_Matched, 0);
+    }
+  }
+
+  if (((game->players[0].pairsFound + game->players[1].pairsFound) == 6 &&
+       game->totalPairs == 6) ||
+      ((game->players[0].pairsFound + game->players[1].pairsFound) == 8 &&
+       game->totalPairs == 8) ||
+      ((game->players[0].pairsFound + game->players[1].pairsFound) == 10 &&
+       game->totalPairs == 10))
+    *currentScreen = SCREEN_GAMEOVER;
+  return;
 }
 
-void playMPRender(SDL_Renderer* renderer, tPlayMPScreen* MP, tAssets* assets, tBoard* board, tGame* game)
-{
-    SDL_RenderCopy(renderer, assets->background, NULL, NULL);
-    SDL_RenderCopy(renderer, assets->back, NULL, &MP->btnBack.rect);
+void playMPRender(SDL_Renderer *renderer, tPlayMPScreen *MP, tAssets *assets,
+                  tBoard *board, tGame *game) {
+  SDL_RenderCopy(renderer, assets->backgroundGame, NULL, NULL);
+  SDL_RenderCopy(renderer, assets->back, NULL, &MP->btnBack.rect);
 
-    SDL_Color white = {255,255,255,255};
+  SDL_Color white = {255, 255, 255, 255};
 
-    for(int i=0; i<game->playerCount; i++)
-    {
-        if(MP->scoreRendered[i] != MP->scoreValue[i])
-        {
-            MP->scoreRendered[i] = MP->scoreValue[i];
+  for (int i = 0; i < game->playerCount; i++) {
+    if (MP->scoreRendered[i] != MP->scoreValue[i]) {
+      MP->scoreRendered[i] = MP->scoreValue[i];
 
-            char buffer[32];
-            snprintf(buffer, sizeof(buffer), "%d", MP->scoreRendered[i]);
+      char buffer[32];
+      snprintf(buffer, sizeof(buffer), "%d", MP->scoreRendered[i]);
 
-            if(MP->lblPlayerScore[i].texture){
-                SDL_DestroyTexture(MP->lblPlayerScore[i].texture);
-                MP->lblPlayerScore[i].texture = NULL;
-            }
+      if (MP->lblPlayerScore[i].texture) {
+        SDL_DestroyTexture(MP->lblPlayerScore[i].texture);
+        MP->lblPlayerScore[i].texture = NULL;
+      }
 
-            lblCreate(&MP->lblPlayerScore[i], renderer, assets->font, buffer, white);
+      lblCreate(&MP->lblPlayerScore[i], renderer, assets->font, buffer, white);
 
-            // re-ubicar (ajustá a tu UI actual)
-            if(i == 0){ MP->lblPlayerScore[0].rect.x = 10; MP->lblPlayerScore[0].rect.y = 50; }
-            else      { MP->lblPlayerScore[1].rect.x = SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100; MP->lblPlayerScore[1].rect.y = 50; }
-        }
+      // re-ubicar (ajustá a tu UI actual)
+      if (i == 0) {
+        MP->lblPlayerScore[0].rect.x = 10;
+        MP->lblPlayerScore[0].rect.y = 50;
+      } else {
+        MP->lblPlayerScore[1].rect.x =
+            SCREEN_WIDTH - MP->lblPlayerScore[1].rect.w - 100;
+        MP->lblPlayerScore[1].rect.y = 50;
+      }
     }
+  }
 
+  for (int i = 0; i < game->playerCount; i++) {
+    SDL_RenderCopy(renderer, MP->lblPlayerName[i].texture, NULL,
+                   &MP->lblPlayerName[i].rect);
+    SDL_RenderCopy(renderer, MP->lblPlayerScore[i].texture, NULL,
+                   &MP->lblPlayerScore[i].rect);
+  }
 
-    for(int i=0; i < game->playerCount; i++)
-    {
-        SDL_RenderCopy(renderer, MP->lblPlayerName[i].texture, NULL, &MP->lblPlayerName[i].rect);
-        SDL_RenderCopy(renderer, MP->lblPlayerScore[i].texture, NULL, &MP->lblPlayerScore[i].rect);
-    }
-
-    boardRender(renderer, board, MP->activeSet);
+  boardRender(renderer, board, MP->activeSet);
 }
 
-void playMPDestroy(tPlayMPScreen* MP, tGame* game)
-{
-    if(!MP || !game)
-        return;
+void playMPDestroy(tPlayMPScreen *MP, tGame *game) {
+  if (!MP || !game)
+    return;
 
-    for(int i = 0; i < game->playerCount; i++)
-    {
-        if(MP->lblPlayerName[i].texture)
-        {
-            SDL_DestroyTexture(MP->lblPlayerName[i].texture);
-            MP->lblPlayerName[i].texture = NULL;
-        }
-
-        if(MP->lblPlayerScore[i].texture)
-        {
-            SDL_DestroyTexture(MP->lblPlayerScore[i].texture);
-            MP->lblPlayerScore[i].texture = NULL;
-        }
+  for (int i = 0; i < game->playerCount; i++) {
+    if (MP->lblPlayerName[i].texture) {
+      SDL_DestroyTexture(MP->lblPlayerName[i].texture);
+      MP->lblPlayerName[i].texture = NULL;
     }
+
+    if (MP->lblPlayerScore[i].texture) {
+      SDL_DestroyTexture(MP->lblPlayerScore[i].texture);
+      MP->lblPlayerScore[i].texture = NULL;
+    }
+  }
+}
+
+// ==================================================================================================================================================
+// =========================================================
+// GAME ENDED -- SP PLAYING
+// =========================================================
+
+int playSPExitInit(tPlaySPScreenExit *SP, SDL_Renderer *renderer,
+                   tAssets *assets, tGame *game, tBoard *board,
+                   tSetCardMenu *setCardMenu, ScreenType difficulty) {
+  int centerX = SCREEN_WIDTH / 2;
+  int centerY = SCREEN_HEIGHT / 2;
+  int btnWidth = BTN_W;
+  int btnHeight = BTN_H;
+
+  SP->currentDifficulty = difficulty;
+
+  // Logo
+  SP->logoRect.w = LOGO_W;
+  SP->logoRect.h = LOGO_H;
+  SP->logoRect.x = centerX - (LOGO_W / 2);
+  SP->logoRect.y = 10;
+
+  // Botones
+  SP->btnTryAgain.rect =
+      (SDL_Rect){centerX - (btnWidth / 2), centerY + 50, btnWidth, btnHeight};
+  SP->btnTryAgain.state = BTN_NORMAL;
+
+  SP->btnPantallaInicio = SP->btnTryAgain;
+  SP->btnPantallaInicio.rect.y += 90;
+
+  SP->btnExit = SP->btnTryAgain;
+  SP->btnExit.rect.y += 180;
+
+  // ScoreBox — left
+  SP->scoreBoxRect.w = 400;
+  SP->scoreBoxRect.h = 400;
+  SP->scoreBoxRect.x = 20;
+  SP->scoreBoxRect.y = 70;
+
+  int boxX = SP->scoreBoxRect.x;
+  int boxY = SP->scoreBoxRect.y;
+
+  SDL_Color white = {255, 255, 255, 255};
+
+  // Área útil del panel (evita la columna izquierda del sprite)
+  const int innerX = boxX + 95;
+  const int topY   = boxY + 140;
+  const int gapY   = 42;
+
+  // --- Player name
+  if (lblCreate(&SP->lblPlayerName, renderer, assets->font,
+                game->players[0].namePlayer, white) != OK)
+    return SDL_ERR;
+
+  SP->lblPlayerName.rect.x = innerX;
+  SP->lblPlayerName.rect.y = topY;
+
+  // --- Score
+  char bufferScore[64];
+  snprintf(bufferScore, sizeof(bufferScore), "Puntaje: %d",
+           game->players[0].score);
+
+  if (lblCreate(&SP->lblPlayerScore, renderer, assets->font, bufferScore,
+                white) != OK)
+    return SDL_ERR;
+
+  SP->lblPlayerScore.rect.x = innerX;
+  SP->lblPlayerScore.rect.y = topY + gapY;
+
+  // --- Moves
+  char bufferMoves[64];
+  snprintf(bufferMoves, sizeof(bufferMoves), "Movimientos: %d",
+           game->players[0].moves);
+
+  if (lblCreate(&SP->lblPlayerMoves, renderer, assets->font, bufferMoves,
+                white) != OK)
+    return SDL_ERR;
+
+  SP->lblPlayerMoves.rect.x = innerX;
+  SP->lblPlayerMoves.rect.y = topY + gapY * 2;
+
+  // --- Labels botones
+  if (lblCreate(&SP->lblTryAgain, renderer, assets->font, "Volver a jugar",
+                white) != OK)
+    return SDL_ERR;
+
+  SP->lblTryAgain.rect.x =
+      SP->btnTryAgain.rect.x +
+      (SP->btnTryAgain.rect.w - SP->lblTryAgain.rect.w) / 2;
+  SP->lblTryAgain.rect.y =
+      SP->btnTryAgain.rect.y +
+      (SP->btnTryAgain.rect.h - SP->lblTryAgain.rect.h) / 2;
+
+  if (lblCreate(&SP->lblPantallaInicio, renderer, assets->font, "Inicio",
+                white) != OK)
+    return SDL_ERR;
+
+  SP->lblPantallaInicio.rect.x =
+      SP->btnPantallaInicio.rect.x +
+      (SP->btnPantallaInicio.rect.w - SP->lblPantallaInicio.rect.w) / 2;
+  SP->lblPantallaInicio.rect.y =
+      SP->btnPantallaInicio.rect.y +
+      (SP->btnPantallaInicio.rect.h - SP->lblPantallaInicio.rect.h) / 2;
+
+  if (lblCreate(&SP->lblExit, renderer, assets->font, "Exit game", white) != OK)
+    return SDL_ERR;
+
+  SP->lblExit.rect.x =
+      SP->btnExit.rect.x + (SP->btnExit.rect.w - SP->lblExit.rect.w) / 2;
+  SP->lblExit.rect.y =
+      SP->btnExit.rect.y + (SP->btnExit.rect.h - SP->lblExit.rect.h) / 2;
+
+  // Sonidos
+  SP->btnTryAgain.melody = sound_load(CLICK);
+  SP->btnPantallaInicio.melody = sound_load(CLICK);
+  SP->btnExit.melody = sound_load(CLICK);
+
+  if (!SP->btnTryAgain.melody || !SP->btnPantallaInicio.melody ||
+      !SP->btnExit.melody) {
+    fprintf(stderr, "No se pudo cargar el sonido en GameOver.\n");
+  }
+
+  return OK;
 }
 
 
+void playSPExitUpdate(tPlaySPScreenExit *SP, tGame *game, tBoard *board,
+                      tInput *input, ScreenType *currentScreen) {
+  btnUpdate(&SP->btnTryAgain, input);
+  btnUpdate(&SP->btnPantallaInicio, input);
+  btnUpdate(&SP->btnExit, input);
 
+  if (input->mouseReleased) {
+    if (pointInRect(input->mouseX, input->mouseY, &SP->btnTryAgain.rect)) {
+      *currentScreen = SP->currentDifficulty;
+      sound_play(SP->btnTryAgain.melody, 0); // reproduce sonido
+      game->playerCount = 1;
+    }
+
+    if (pointInRect(input->mouseX, input->mouseY,
+                    &SP->btnPantallaInicio.rect)) {
+      *currentScreen = SCREEN_MAIN;
+      sound_play(SP->btnPantallaInicio.melody, 0); // reproduce sonido
+      game->playerCount = 1;
+    }
+    if (pointInRect(input->mouseX, input->mouseY, &SP->btnExit.rect)) {
+      *currentScreen = SCREEN_EXIT;
+      sound_play(SP->btnExit.melody, 0); // reproduce sonido
+      game->playerCount = 0;
+    }
+  }
+}
+
+void playSPExitRender(SDL_Renderer *renderer, tPlaySPScreenExit *SP,
+                      tAssets *assets, tBoard *board) {
+  SDL_RenderCopy(renderer, assets->background, NULL, NULL);
+  SDL_RenderCopy(renderer, assets->logo, NULL, &SP->logoRect);
+  SDL_RenderCopy(renderer, assets->scoreBox, NULL, &SP->scoreBoxRect);
+
+  SDL_Texture *tex;
+
+  // Volver a jugar
+  switch (SP->btnTryAgain.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &SP->btnTryAgain.rect);
+
+  // Inicio
+  switch (SP->btnPantallaInicio.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &SP->btnPantallaInicio.rect);
+
+  // Exit
+  switch (SP->btnExit.state) {
+  case BTN_NORMAL:
+    tex = assets->buttonNormal;
+    break;
+  case BTN_HOVER:
+    tex = assets->buttonHover;
+    break;
+  case BTN_PRESSED:
+    tex = assets->buttonPressed;
+    break;
+  default:
+    tex = assets->buttonNormal;
+    break;
+  }
+  SDL_RenderCopy(renderer, tex, NULL, &SP->btnExit.rect);
+
+  SDL_RenderCopy(renderer, SP->lblTryAgain.texture, NULL,
+                 &SP->lblTryAgain.rect);
+  SDL_RenderCopy(renderer, SP->lblPantallaInicio.texture, NULL,
+                 &SP->lblPantallaInicio.rect);
+  SDL_RenderCopy(renderer, SP->lblExit.texture, NULL, &SP->lblExit.rect);
+  SDL_RenderCopy(renderer, SP->lblPlayerName.texture, NULL,
+                 &SP->lblPlayerName.rect);
+  SDL_RenderCopy(renderer, SP->lblPlayerScore.texture, NULL,
+                 &SP->lblPlayerScore.rect);
+  SDL_RenderCopy(renderer, SP->lblPlayerMoves.texture, NULL,
+                 &SP->lblPlayerMoves.rect);
+}
+
+void playSPExitDestroy(tPlaySPScreenExit *SP) {
+  if (!SP)
+    return;
+
+  if (SP->lblTryAgain.texture) {
+    SDL_DestroyTexture(SP->lblTryAgain.texture);
+    SP->lblTryAgain.texture = NULL;
+  }
+
+  if (SP->lblPantallaInicio.texture) {
+    SDL_DestroyTexture(SP->lblPantallaInicio.texture);
+    SP->lblPantallaInicio.texture = NULL;
+  }
+
+  if (SP->lblExit.texture) {
+    SDL_DestroyTexture(SP->lblExit.texture);
+    SP->lblExit.texture = NULL;
+  }
+
+  if (SP->lblPlayerName.texture) {
+    SDL_DestroyTexture(SP->lblPlayerName.texture);
+    SP->lblPlayerName.texture = NULL;
+  }
+
+  if (SP->lblPlayerScore.texture) {
+    SDL_DestroyTexture(SP->lblPlayerScore.texture);
+    SP->lblPlayerScore.texture = NULL;
+  }
+
+  if (SP->lblPlayerMoves.texture) {
+    SDL_DestroyTexture(SP->lblPlayerMoves.texture);
+    SP->lblPlayerMoves.texture = NULL;
+  }
+
+  // Destroy sonidos botones
+  sound_destroy(SP->btnTryAgain.melody);
+  sound_destroy(SP->btnPantallaInicio.melody);
+  sound_destroy(SP->btnExit.melody);
+}

@@ -47,7 +47,7 @@ tSound* sound_load(const char *path)
         return NULL;
     }
 
-    // Detectar extensión
+    // Detectar extensiï¿½n
     const char *ext = strrchr(path, '.');
     //si es MP3
     if (ext && strcmp(ext, ".mp3") == 0) {
@@ -90,7 +90,7 @@ void sound_play(const tSound *sound, int32_t cantVeces)
     //pregunta si es el sonido principal.
     if (sound->music) {  // MP3
         if (Mix_PlayMusic(sound->music, loops) == -1) {
-            fprintf(stderr, "Error al reproducir música: %s\n", Mix_GetError());
+            fprintf(stderr, "Error al reproducir mï¿½sica: %s\n", Mix_GetError());
         }
     }else{// WAV
         if (Mix_PlayChannel(MIXER_CANAL_LIBRE, sound->chunk, loops) == -1) {

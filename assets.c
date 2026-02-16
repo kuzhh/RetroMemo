@@ -55,10 +55,24 @@ int assetsLoad(tAssets* assets, SDL_Renderer* renderer)
         return SDL_ERR;
     }
 
+    assets->backgroundGame = IMG_LoadTexture(renderer, BACKGROUND_SECOND);
+    if(!assets->backgroundGame)
+    {
+        printf("Error loading backgroundGame: %s\n", IMG_GetError());
+        return SDL_ERR;
+    }
+
     assets->logo = IMG_LoadTexture(renderer, LOGO);
     if(!assets->logo)
     {
         printf("Error loading logo: %s\n", IMG_GetError());
+        return SDL_ERR;
+    }
+
+    assets->scoreBox = IMG_LoadTexture(renderer, SCORE_BOX);
+    if(!assets->scoreBox)
+    {
+        printf("Error loading scoreBox: %s\n", IMG_GetError());
         return SDL_ERR;
     }
 
@@ -110,6 +124,12 @@ void assetsUnload(tAssets* assets)
 {
     if(assets->background)
         SDL_DestroyTexture(assets->background);
+
+    if(assets->backgroundGame)
+        SDL_DestroyTexture(assets->backgroundGame);
+
+    if(assets->scoreBox)
+        SDL_DestroyTexture(assets->scoreBox);
 
     if(assets->logo)
         SDL_DestroyTexture(assets->logo);

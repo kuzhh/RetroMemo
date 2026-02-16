@@ -99,6 +99,9 @@ typedef struct
     SDL_Texture* buttonPressed;
 
     SDL_Texture* background;
+    SDL_Texture* backgroundGame;
+
+    SDL_Texture* scoreBox;
 
     SDL_Texture* logo;
 

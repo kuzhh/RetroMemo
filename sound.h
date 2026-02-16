@@ -18,7 +18,7 @@ typedef enum {
 //estructura
 typedef struct {
     Mix_Chunk* chunk;   // efectos (WAV)
-    Mix_Music* music;   // música (MP3)
+    Mix_Music* music;   // mï¿½sica (MP3)
     int isTone;
 }tSound;
 
