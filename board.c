@@ -19,9 +19,19 @@ void shuffleCards(tBoard *board)
     {
         int j = rand() % board->totalCards;
 
-        tCard temp = board->cards[i];
-        board->cards[i] = board->cards[j];
-        board->cards[j] = temp;
+        // MOD: antes era swap directo con board->cards[i] (porque era tCard*).
+        // Ahora las cartas están dentro del tVector, entonces accedemos con vector_get.
+        tCard *ci = (tCard *)vector_get(&board->cards, i);
+        tCard *cj = (tCard *)vector_get(&board->cards, j);
+
+        // ADD: blindaje por si index inválido (no debería pasar, pero evita crasheos)
+        if (!ci || !cj)
+            continue;
+
+        // MOD: swap de contenido de las cartas (intercambio structs)
+        tCard temp = *ci;
+        *ci = *cj;
+        *cj = temp;
     }
 }
 
@@ -40,8 +50,9 @@ int boardInit(tBoard *board, int rows, int cols)
         return ERR;
     }
 
-    board->cards = malloc(sizeof(tCard) * board->totalCards);
-    if (!board->cards)
+    // MOD: antes se hacía malloc directo de tCard*.
+    // Ahora inicializamos el TDA Vector (memoria dinámica encapsulada), cumpliendo la consigna.
+    if (!vector_init(&board->cards, sizeof(tCard))) // ADD: crea vector para guardar tCard
     {
         printf("Error creating board: no memory available");
         return ERR;
@@ -49,14 +60,35 @@ int boardInit(tBoard *board, int rows, int cols)
 
     for (int i = 0; i < board->totalCards; i++)
     {
-        board->cards[i].isFlipped = 0;
-        board->cards[i].isMatched = 0;
-        board->cards[i].id = i / 2;
+        // ADD: armamos una carta "local" y la pusheamos al vector
+        tCard newCard;
+
+        // MOD: antes era board->cards[i].campo = ...
+        // Ahora llenamos newCard y lo agregamos al vector.
+        newCard.isFlipped = 0;
+        newCard.isMatched = 0;
+        newCard.id = i / 2;
+
+        // ADD: estos campos no los estabas usando acá (rect/texturas), pero los inicializo
+        // para evitar basura en memoria. Si los seteás en otro lado, igual está ok.
+        newCard.rect = (SDL_Rect){0, 0, 0, 0};
+        newCard.cardFront = NULL;
+        newCard.cardBack = NULL;
 
         // cargo sonido cartas
-        board->cards[i].sound_Click = sound_load(SOUND_CLICK);
-        board->cards[i].sound_Matched = sound_load(SOUND_MATCHED);
-        board->cards[i].sound_Not_Matched = sound_load(SOUND_NOT_MATCHED);
+        // cargo sonido cartas
+        newCard.sound_Click = sound_load(SOUND_CLICK);
+        newCard.sound_Matched = sound_load(SOUND_MATCHED);
+        newCard.sound_Not_Matched = sound_load(SOUND_NOT_MATCHED);
+
+        // ADD: agrego la carta al vector
+        if (!vector_push_back(&board->cards, &newCard))
+        {
+            // ADD: si falla el push, libero lo que ya haya y aviso error
+            printf("Error creating board: could not push card");
+            boardDestroy(board); // usa destroy vector + sonidos ya cargados
+            return ERR;
+        }
     }
 
     shuffleCards(board);
@@ -66,22 +98,35 @@ int boardInit(tBoard *board, int rows, int cols)
 
 void boardDestroy(tBoard *board)
 {
-    if (!board->cards)
+    // MOD: antes chequeabas board->cards (puntero). Ahora es un vector.
+    // Si el vector no tiene data, no hay nada para destruir.
+    if (!board)
         return;
 
+    // ADD: recorremos las cartas dentro del vector para destruir sonidos
     for (int i = 0; i < board->totalCards; i++)
     {
-        sound_destroy(board->cards[i].sound_Matched);
-        sound_destroy(board->cards[i].sound_Not_Matched);
+        tCard *c = (tCard *)vector_get(&board->cards, i); // ADD: obtengo carta del vector
+        if (!c)
+            continue;
+
+        sound_destroy(c->sound_Matched);
+        sound_destroy(c->sound_Not_Matched);
+
+        // ADD: (opcional) dejo punteros en NULL por prolijidad
+        c->sound_Matched = NULL;
+        c->sound_Not_Matched = NULL;
     }
 
-    free(board->cards);
-    board->cards = NULL;
+    // MOD: antes era free(board->cards). Ahora destruimos el vector.
+    vector_destroy(&board->cards); // ADD: libera memoria dinámica del vector
 }
 
 void boardRender(SDL_Renderer *renderer, tBoard *board, tCardSet *card)
 {
-    if (!board->cards || !card)
+    // MOD: antes era !board->cards. Ahora chequeo que el vector tenga data.
+    // Si tu vector usa data=NULL cuando está vacío, esto está perfecto.
+    if (!board || !board->cards.data || !card)
         return;
 
     int hSpacing = 30;
@@ -114,9 +159,15 @@ void boardRender(SDL_Renderer *renderer, tBoard *board, tCardSet *card)
             .h = cardH
         };
 
-        if (board->cards[i].isFlipped || board->cards[i].isMatched)
+        // ADD: obtengo carta desde el vector
+        tCard *c = (tCard *)vector_get(&board->cards, i);
+        if (!c)
+            continue;
+
+        // MOD: antes era board->cards[i].isFlipped etc.
+        if (c->isFlipped || c->isMatched)
         {
-            SDL_RenderCopy(renderer, card->cardFront[board->cards[i].id], NULL, &dest);
+            SDL_RenderCopy(renderer, card->cardFront[c->id], NULL, &dest);
         }
         else
         {
@@ -127,8 +178,9 @@ void boardRender(SDL_Renderer *renderer, tBoard *board, tCardSet *card)
 
 int boardGetCardAt(tBoard *board, int mouseX, int mouseY)
 {
-    if (!board || !board->cards) // evita errores
-        return -1;               // evita errores
+    // MOD: antes chequeabas board->cards (puntero). Ahora chequeo data del vector.
+    if (!board || !board->cards.data) // evita errores
+        return -1;                    // evita errores
 
     int hSpacing = 30;
     int wSpacing = 25;
@@ -173,7 +225,8 @@ int boardGetCardAt(tBoard *board, int mouseX, int mouseY)
 
 void boardRenderHover(SDL_Renderer *renderer, tBoard *board, tCardSet *card, int hovered)
 {
-    if (!board || !board->cards || !card)
+    // MOD: antes era !board->cards. Ahora chequeo data del vector.
+    if (!board || !board->cards.data || !card)
         return;
 
     int hSpacing = 30;
@@ -206,19 +259,39 @@ void boardRenderHover(SDL_Renderer *renderer, tBoard *board, tCardSet *card, int
             .h = cardH
         };
 
-        if (i == hovered && !board->cards[i].isMatched && !board->cards[i].isFlipped)
+        // ADD: obtengo carta desde el vector
+        tCard *c = (tCard *)vector_get(&board->cards, i);
+        if (!c)
+            continue;
+
+        // MOD: antes era board->cards[i].isMatched etc.
+        if (i == hovered && !c->isMatched && !c->isFlipped)
         {
             dest = rectScaleCentered(dest, 1.10f);
             dest.y -= 4;
         }
 
-        if (board->cards[i].isFlipped || board->cards[i].isMatched)
+        if (c->isFlipped || c->isMatched)
         {
-            SDL_RenderCopy(renderer, card->cardFront[board->cards[i].id], NULL, &dest);
+            SDL_RenderCopy(renderer, card->cardFront[c->id], NULL, &dest);
         }
         else
         {
             SDL_RenderCopy(renderer, card->cardBack, NULL, &dest);
         }
     }
+}
+tCard* boardCardAt(tBoard* board, int index)
+{
+    // ADD: blindaje, evita crasheos si index está fuera de rango
+    if (!board || !board->cards.data || index < 0 || index >= board->totalCards)
+        return NULL;
+
+    return (tCard*)vector_get(&board->cards, (size_t)index);
+}
+
+int boardIsReady(const tBoard* board)
+{
+    // ADD: esto reemplaza el viejo "board->cards != NULL"
+    return (board && board->cards.data != NULL);
 }
