@@ -5,7 +5,7 @@
 
 #include "assets.h"
 #include "sound.h"
-#include "vector.h"  // ADD: incluimos el TDA Vector para manejar las cartas con memoria dinámica (sin usar malloc directo acá)
+#include "vector.h"  // incluimos el TDA Vector para manejar las cartas con mem din
 
 typedef struct
 {
@@ -22,15 +22,12 @@ typedef struct
 
 typedef struct
 {
-    // MOD: antes era tCard* cards (malloc/free directo).
-    // Ahora usamos tVector para cumplir la consigna: "solución principal con TDA Vector y memoria dinámica".
-    // Este vector guarda elementos de tipo tCard (elem_size = sizeof(tCard)).
-    // NO debe accederse directamente desde otros módulos (usar boardCardAt).
+    // guarda elementos de tipo tCard (elem_size = sizeof(tCard)).
     tVector cards;
 
-    int rows; //depende del modo de juego
-    int cols; //depende del modo de juego
-    int totalCards; //depende del modo de juego
+    int rows;
+    int cols;
+    int totalCards; 
 } tBoard;
 
 void shuffleCards(tBoard*);
@@ -41,13 +38,9 @@ void boardRenderHover(SDL_Renderer*, tBoard*, tCardSet*, int);
 
 int boardGetCardAt(tBoard*, int, int);
 
-// ADD: helper para obtener puntero a carta por índice.
-// IMPORTANTE: reemplaza cualquier uso de &board->cards[i].
-// Evita que el resto del juego dependa de la implementación interna (vector).
 tCard* boardCardAt(tBoard* board, int index);
 
-// ADD: helper para saber si el board está listo (vector inicializado).
-// Reemplaza el viejo chequeo: if(board->cards != NULL)
 int boardIsReady(const tBoard* board);
 
 #endif // BOARD_H_INCLUDED
+
