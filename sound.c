@@ -2,7 +2,8 @@
 
 tFormatsSnd sound_start()
 {
-    tFormatsSnd formatsSnd = SOUND_WAV; // Soporte para WAV ya incluido
+    tFormatsSnd formatsSnd = SOUND_WAV; // Soporte para WAV incluido
+
     int32_t flags = MIX_INIT_MP3 | MIX_INIT_OGG;
     int32_t init = Mix_Init(flags); // Inicializa SDL_mixer
 
@@ -40,6 +41,7 @@ tSound* sound_load(const char *path)
 
     // Detectar extension
     const char *ext = strrchr(path, '.');
+    
     //si es MP3
     if (ext && strcmp(ext, ".mp3") == 0) {
         sound->music = Mix_LoadMUS(path);

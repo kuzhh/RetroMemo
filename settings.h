@@ -6,8 +6,8 @@
 #define SETTINGS_FILE "settings.bin"
 
 typedef struct {
-  int volume;            // 0 to 128 (SDL_mixer range)
-  int allowDefaultNames; // 1 = yes, 0 = no
+  int volume;            // de 0 a 128 (SDL_mixer range)
+  int allowDefaultNames; // 1 = si, 0 = no
 } tSettings;
 
 void settingsDefault(tSettings *s);

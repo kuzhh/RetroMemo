@@ -15,10 +15,13 @@ static void sortDesc(tScoreEntry a[], int n)
 int scoreboardLoad(const char* filename, tScoreEntry out[], int* outCount)
 {
     FILE* f = fopen(filename, "r");
-    if(!outCount) return 0;
+    if(!outCount) 
+        return 0;
+        
     *outCount = 0;
 
-    if(!f) return 1; // si no existe, arrancamos vacío (no es error)
+    if(!f)  
+        return 1; // si no existe, arrancamos vacío (no es error)
 
     while(*outCount < SCORE_MAX_ENTRIES)
     {

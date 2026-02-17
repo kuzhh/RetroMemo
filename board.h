@@ -24,7 +24,7 @@ typedef struct
 {
     // MOD: antes era tCard* cards (malloc/free directo).
     // Ahora usamos tVector para cumplir la consigna: "solución principal con TDA Vector y memoria dinámica".
-    // Importante: este vector guarda elementos de tipo tCard (elem_size = sizeof(tCard)).
+    // Este vector guarda elementos de tipo tCard (elem_size = sizeof(tCard)).
     // NO debe accederse directamente desde otros módulos (usar boardCardAt).
     tVector cards;
 

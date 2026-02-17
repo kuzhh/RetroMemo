@@ -4,7 +4,7 @@
 
 #define INITIAL_CAPACITY 8
 
-int vector_init(tVector* v, size_t elem_size)
+int vector_init(tVector *v, size_t elem_size)
 {
     if (!v || elem_size == 0)
         return 0;
@@ -20,12 +20,12 @@ int vector_init(tVector* v, size_t elem_size)
     return 1;
 }
 
-int vector_reserve(tVector* v, size_t new_capacity)
+int vector_reserve(tVector *v, size_t new_capacity)
 {
     if (!v || new_capacity <= v->capacity)
         return 1;
 
-    void* newData = realloc(v->data, new_capacity * v->elem_size);
+    void *newData = realloc(v->data, new_capacity * v->elem_size);
     if (!newData)
         return 0;
 
@@ -34,7 +34,7 @@ int vector_reserve(tVector* v, size_t new_capacity)
     return 1;
 }
 
-int vector_push_back(tVector* v, const void* elem)
+int vector_push_back(tVector *v, const void *elem)
 {
     if (!v || !elem)
         return 0;
@@ -45,7 +45,7 @@ int vector_push_back(tVector* v, const void* elem)
             return 0;
     }
 
-    memcpy((char*)v->data + v->size * v->elem_size,
+    memcpy((char *)v->data + v->size * v->elem_size,
            elem,
            v->elem_size);
 
@@ -53,15 +53,15 @@ int vector_push_back(tVector* v, const void* elem)
     return 1;
 }
 
-void* vector_get(tVector* v, size_t index)
+void *vector_get(tVector *v, size_t index)
 {
     if (!v || index >= v->size)
         return NULL;
 
-    return (char*)v->data + index * v->elem_size;
+    return (char *)v->data + index * v->elem_size;
 }
 
-size_t vector_size(const tVector* v)
+size_t vector_size(const tVector *v)
 {
     if (!v)
         return 0;
@@ -69,7 +69,7 @@ size_t vector_size(const tVector* v)
     return v->size;
 }
 
-void vector_destroy(tVector* v)
+void vector_destroy(tVector *v)
 {
     if (!v)
         return;

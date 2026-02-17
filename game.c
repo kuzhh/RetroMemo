@@ -100,6 +100,7 @@ void gameOnPairResolved(tGame *game, int isMatch)
 
         // y se le aplica penalización
         game->players[game->currentPlayer].score -= 10;
+
         // pero si score < 0, lo deja en 0
         if (game->players[game->currentPlayer].score < 0)
             game->players[game->currentPlayer].score = 0;
@@ -137,7 +138,7 @@ int gameGetWinnerIndex(const tGame *game)
 
 /*  Guarda los puntajes actuales en el archivo SCORE_FILE (ranking Top 5):
     -carga lo que ya existe en el archivo
-    -inserta los jugadores actuales (1 o 2) <<<manteniendo Top 5>>>>
+    -inserta los jugadores actuales (1 o 2) -- manteniendo Top 5
     -guarda el ranking actualizado
 */
 int gameCommitScoresToFile(const tGame *game) // guardar score

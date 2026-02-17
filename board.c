@@ -24,11 +24,11 @@ void shuffleCards(tBoard *board)
         tCard *ci = (tCard *)vector_get(&board->cards, i);
         tCard *cj = (tCard *)vector_get(&board->cards, j);
 
-        // ADD: blindaje por si index inválido (no debería pasar, pero evita crasheos)
+        // ADD: si index es inválido (no debería pasar, pero evita crash)
         if (!ci || !cj)
             continue;
 
-        // MOD: swap de contenido de las cartas (intercambio structs)
+        // MOD: swap de contenido de las cartas
         tCard temp = *ci;
         *ci = *cj;
         *cj = temp;
@@ -51,7 +51,7 @@ int boardInit(tBoard *board, int rows, int cols)
     }
 
     // MOD: antes se hacía malloc directo de tCard*.
-    // Ahora inicializamos el TDA Vector (memoria dinámica encapsulada), cumpliendo la consigna.
+    // Ahora inicializamos el TDA Vector
     if (!vector_init(&board->cards, sizeof(tCard))) // ADD: crea vector para guardar tCard
     {
         printf("Error creating board: no memory available");
@@ -69,13 +69,11 @@ int boardInit(tBoard *board, int rows, int cols)
         newCard.isMatched = 0;
         newCard.id = i / 2;
 
-        // ADD: estos campos no los estabas usando acá (rect/texturas), pero los inicializo
-        // para evitar basura en memoria. Si los seteás en otro lado, igual está ok.
+        // ADD: inicializo para evitar basura en memoria.
         newCard.rect = (SDL_Rect){0, 0, 0, 0};
         newCard.cardFront = NULL;
         newCard.cardBack = NULL;
 
-        // cargo sonido cartas
         // cargo sonido cartas
         newCard.sound_Click = sound_load(SOUND_CLICK);
         newCard.sound_Matched = sound_load(SOUND_MATCHED);
@@ -98,7 +96,7 @@ int boardInit(tBoard *board, int rows, int cols)
 
 void boardDestroy(tBoard *board)
 {
-    // MOD: antes chequeabas board->cards (puntero). Ahora es un vector.
+    // MOD: antes chequeaba board->cards (puntero). Ahora es un vector.
     // Si el vector no tiene data, no hay nada para destruir.
     if (!board)
         return;
@@ -113,7 +111,7 @@ void boardDestroy(tBoard *board)
         sound_destroy(c->sound_Matched);
         sound_destroy(c->sound_Not_Matched);
 
-        // ADD: (opcional) dejo punteros en NULL por prolijidad
+        // ADD: dejo punteros en NULL por prolijidad
         c->sound_Matched = NULL;
         c->sound_Not_Matched = NULL;
     }
@@ -125,7 +123,6 @@ void boardDestroy(tBoard *board)
 void boardRender(SDL_Renderer *renderer, tBoard *board, tCardSet *card)
 {
     // MOD: antes era !board->cards. Ahora chequeo que el vector tenga data.
-    // Si tu vector usa data=NULL cuando está vacío, esto está perfecto.
     if (!board || !board->cards.data || !card)
         return;
 
@@ -178,9 +175,9 @@ void boardRender(SDL_Renderer *renderer, tBoard *board, tCardSet *card)
 
 int boardGetCardAt(tBoard *board, int mouseX, int mouseY)
 {
-    // MOD: antes chequeabas board->cards (puntero). Ahora chequeo data del vector.
+    // MOD: antes chequeaba board->cards (puntero). Ahora chequeo data del vector.
     if (!board || !board->cards.data) // evita errores
-        return -1;                    // evita errores
+        return -1;
 
     int hSpacing = 30;
     int wSpacing = 25;
@@ -283,7 +280,7 @@ void boardRenderHover(SDL_Renderer *renderer, tBoard *board, tCardSet *card, int
 }
 tCard* boardCardAt(tBoard* board, int index)
 {
-    // ADD: blindaje, evita crasheos si index está fuera de rango
+    // ADD: evita crashe si index está fuera de rango
     if (!board || !board->cards.data || index < 0 || index >= board->totalCards)
         return NULL;
 
