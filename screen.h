@@ -45,6 +45,7 @@ typedef struct
     tLabel lblExit;
 
     SDL_Rect logoRect;
+    SDL_Rect scoreBoxRect;
 
     // ===== TOP 5 =====
     tLabel lblTopTitle;            // "TOP 5" (opcional, pero queda lindo)

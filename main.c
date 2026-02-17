@@ -95,6 +95,13 @@ int main(int argc, char *argv[]) {
         // chequeo de pantallas para no iniciar la screen cada frame
         if (currentScreen != previousScreen) 
         {
+            // ===== Recargar Main Menu si venimos de GAMEOVER (para refrescar TOP) =====
+            if (currentScreen == SCREEN_MAIN && previousScreen == SCREEN_GAMEOVER)
+            {
+                mainMenuDestroy(&mainMenu);
+                mainMenuInit(&mainMenu, screen.renderer, &assets);
+            }
+
             if (currentScreen == SCREEN_GAME_LOW) {
                 boardDestroy(&board);
                 boardInit(&board, LOW_ROWS, LOW_COLS);
