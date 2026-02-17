@@ -2175,7 +2175,7 @@ void playMPExitUpdate(tPlayMPScreenExit *MP, tGame *game, tBoard *board,
 }
 
 void playMPExitRender(SDL_Renderer *renderer, tPlayMPScreenExit *MP,
-                      tAssets *assets, tBoard *board)
+                      tAssets *assets, tBoard *board, tGame *game)
 {
     SDL_RenderCopy(renderer, assets->background, NULL, NULL);
     SDL_RenderCopy(renderer, assets->logo, NULL, &MP->logoRect);
@@ -2242,15 +2242,110 @@ void playMPExitRender(SDL_Renderer *renderer, tPlayMPScreenExit *MP,
     SDL_RenderCopy(renderer, MP->lblPantallaInicio.texture, NULL, &MP->lblPantallaInicio.rect);
     SDL_RenderCopy(renderer, MP->lblExit.texture, NULL, &MP->lblExit.rect);
 
-    // P1
+    SDL_Color glowColor = {180, 30, 40, 200};
+
+    int winner = -1;
+
+    if (game->players[0].score > game->players[1].score)
+    winner = 0;
+    else if (game->players[1].score > game->players[0].score)
+    winner = 1;
+    // si empatan, winner queda -1 (sin glow)
+
+    if (winner == 0)
+    {
+        // NAME
+        SDL_SetTextureColorMod(MP->lblP1Name.texture,
+                            glowColor.r, glowColor.g, glowColor.b);
+
+        for (int dx = -2; dx <= 2; dx++)
+            for (int dy = -2; dy <= 2; dy++)
+                if (dx || dy) {
+                    SDL_Rect r = MP->lblP1Name.rect;
+                    r.x += dx; r.y += dy;
+                    SDL_RenderCopy(renderer, MP->lblP1Name.texture, NULL, &r);
+                }
+
+        SDL_SetTextureColorMod(MP->lblP1Name.texture, 255,255,255);
+
+        // SCORE
+        SDL_SetTextureColorMod(MP->lblP1Score.texture,
+                            glowColor.r, glowColor.g, glowColor.b);
+
+        for (int dx = -2; dx <= 2; dx++)
+            for (int dy = -2; dy <= 2; dy++)
+                if (dx || dy) {
+                    SDL_Rect r = MP->lblP1Score.rect;
+                    r.x += dx; r.y += dy;
+                    SDL_RenderCopy(renderer, MP->lblP1Score.texture, NULL, &r);
+                }
+
+        SDL_SetTextureColorMod(MP->lblP1Score.texture, 255,255,255);
+
+        // MOVES
+        SDL_SetTextureColorMod(MP->lblP1Moves.texture,
+                            glowColor.r, glowColor.g, glowColor.b);
+
+        for (int dx = -2; dx <= 2; dx++)
+            for (int dy = -2; dy <= 2; dy++)
+                if (dx || dy) {
+                    SDL_Rect r = MP->lblP1Moves.rect;
+                    r.x += dx; r.y += dy;
+                    SDL_RenderCopy(renderer, MP->lblP1Moves.texture, NULL, &r);
+                }
+
+        SDL_SetTextureColorMod(MP->lblP1Moves.texture, 255,255,255);
+    }
+    else if(winner == 1)
+    {
+        SDL_SetTextureColorMod(MP->lblP2Name.texture,
+                           glowColor.r, glowColor.g, glowColor.b);
+
+        for (int dx = -2; dx <= 2; dx++)
+            for (int dy = -2; dy <= 2; dy++)
+                if (dx || dy) {
+                    SDL_Rect r = MP->lblP2Name.rect;
+                    r.x += dx; r.y += dy;
+                    SDL_RenderCopy(renderer, MP->lblP2Name.texture, NULL, &r);
+                }
+
+        SDL_SetTextureColorMod(MP->lblP2Name.texture, 255,255,255);
+
+        SDL_SetTextureColorMod(MP->lblP2Score.texture,
+                            glowColor.r, glowColor.g, glowColor.b);
+
+        for (int dx = -2; dx <= 2; dx++)
+            for (int dy = -2; dy <= 2; dy++)
+                if (dx || dy) {
+                    SDL_Rect r = MP->lblP2Score.rect;
+                    r.x += dx; r.y += dy;
+                    SDL_RenderCopy(renderer, MP->lblP2Score.texture, NULL, &r);
+                }
+
+        SDL_SetTextureColorMod(MP->lblP2Score.texture, 255,255,255);
+
+        SDL_SetTextureColorMod(MP->lblP2Moves.texture,
+                            glowColor.r, glowColor.g, glowColor.b);
+
+        for (int dx = -2; dx <= 2; dx++)
+            for (int dy = -2; dy <= 2; dy++)
+                if (dx || dy) {
+                    SDL_Rect r = MP->lblP2Moves.rect;
+                    r.x += dx; r.y += dy;
+                    SDL_RenderCopy(renderer, MP->lblP2Moves.texture, NULL, &r);
+                }
+
+        SDL_SetTextureColorMod(MP->lblP2Moves.texture, 255,255,255);
+    }
+
     SDL_RenderCopy(renderer, MP->lblP1Name.texture, NULL, &MP->lblP1Name.rect);
     SDL_RenderCopy(renderer, MP->lblP1Score.texture, NULL, &MP->lblP1Score.rect);
     SDL_RenderCopy(renderer, MP->lblP1Moves.texture, NULL, &MP->lblP1Moves.rect);
 
-    // P2
     SDL_RenderCopy(renderer, MP->lblP2Name.texture, NULL, &MP->lblP2Name.rect);
     SDL_RenderCopy(renderer, MP->lblP2Score.texture, NULL, &MP->lblP2Score.rect);
     SDL_RenderCopy(renderer, MP->lblP2Moves.texture, NULL, &MP->lblP2Moves.rect);
+
 }
 
 void playMPExitDestroy(tPlayMPScreenExit *MP)
