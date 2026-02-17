@@ -13,7 +13,7 @@ static void sortDesc(tScoreEntry a[], int n)
             }
 }
 
-//carga de puntaje en archivo
+//carga del scoreboard
 int scoreboardLoad(const char* filename, tScoreEntry out[], int* outCount)
 {
     FILE* f = fopen(filename, "r");
@@ -84,5 +84,6 @@ void scoreboardInsertTop5(tScoreEntry entries[], int* count, const char* name, i
     entries[minIdx].score = score;
     sortDesc(entries, *count);
 }
+
 
 
