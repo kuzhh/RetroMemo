@@ -1,5 +1,6 @@
 #include "input.h"
 
+//detector de clicks
 int pointInRect(int x, int y, SDL_Rect* r)
 {
     return (x >= r->x &&
@@ -62,8 +63,7 @@ bool handleEvents(tInput* input)
             {
                 for(int i = 0; event.text.text[i] && input->textInputLen < MAX_TEXT_INPUT - 1; i++)
                     input->textInput[input->textInputLen++] = event.text.text[i];
-                
-                // Asegurar null siempre al final de escribir
+                //cierro cad
                 input->textInput[input->textInputLen] = '\0'; 
             }
             break;
