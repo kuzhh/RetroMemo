@@ -47,7 +47,7 @@ static void top5Insert(tPlayer top[5], int *n, const tPlayer *p)
     }
 }
 
-int mostrarTop5(const char *ruta)
+int mostrarTop(const char *ruta, tPlayer top[5])
 {
     FILE *arch = fopen(ruta, "rb");
     if (!arch) {
@@ -55,7 +55,6 @@ int mostrarTop5(const char *ruta)
         return ERR;
     }
 
-    tPlayer top[5];
     int n = 0;
 
     tPlayer p;

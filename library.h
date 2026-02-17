@@ -81,6 +81,7 @@
 #define SCORE_MAX_ENTRIES 5
 #define SCORE_NAME_MAX    64
 #define SCORE_FILE "scores.txt"
+#define	MAX_TOP 5
 
 //===========================
 // SOUND

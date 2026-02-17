@@ -46,6 +46,11 @@ typedef struct
 
     SDL_Rect logoRect;
 
+    // ===== TOP 5 =====
+    tLabel lblTopTitle;            // "TOP 5" (opcional, pero queda lindo)
+    tLabel lblTop[MAX_TOP];        // filas del top
+    int topCount;                  // 0..5
+
     tSound *melody;
 } tMainMenu;
 
@@ -244,7 +249,7 @@ void playSPExitDestroy(tPlaySPScreenExit *);
 
 int playMPExitInit(tPlayMPScreenExit *, SDL_Renderer *, tAssets *, tGame *, tBoard *, tSetCardMenu *, ScreenType);
 void playMPExitUpdate(tPlayMPScreenExit *, tGame *, tBoard *, tInput *, ScreenType *);
-void playMPExitRender(SDL_Renderer *, tPlayMPScreenExit *, tAssets *, tBoard *);
+void playMPExitRender(SDL_Renderer *, tPlayMPScreenExit *, tAssets *, tBoard *, tGame *);
 void playMPExitDestroy(tPlayMPScreenExit *);
 
 #endif // SCREEN_H_INCLUDED

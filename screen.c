@@ -1,6 +1,7 @@
 #include "screen.h"
 #include "board.h"
 #include "game.h"
+#include "archive.h"
 
 // =========================================================
 // FUNCIONES AUXILIARES
@@ -98,6 +99,12 @@ int mainMenuInit(tMainMenu *menu, SDL_Renderer *renderer, tAssets *assets)
     menu->btnExit = menu->btnSP;
     menu->btnExit.rect.y += 180;
 
+    // ScoreBox panel (izquierda)
+    menu->scoreBoxRect.w = 420;
+    menu->scoreBoxRect.h = 260;
+    menu->scoreBoxRect.x = 20;
+    menu->scoreBoxRect.y = 20; // debajo del logo
+
     SDL_Color white = {255, 255, 255, 255};
 
     if (lblCreate(&menu->lblSP, renderer, assets->font, "Singleplayer", white) != OK)
@@ -126,6 +133,51 @@ int mainMenuInit(tMainMenu *menu, SDL_Renderer *renderer, tAssets *assets)
     {
         fprintf(stderr, "No se pudo cargar el sonido.");
         sound_finish();
+    }
+
+    // =====================
+    // TOP 5 (si hay archivo)
+    // =====================
+    menu->topCount = 0;
+    for (int i = 0; i < MAX_TOP; i++) {
+        menu->lblTop[i].texture = NULL;
+    }
+    menu->lblTopTitle.texture = NULL;
+
+    tPlayer top[MAX_TOP];
+    menu->topCount = mostrarTop("stats.dat", top);
+
+    // Solo si hay registros, creamos el título + filas
+    if (menu->topCount > 0) {
+        SDL_Color titleC = (SDL_Color){255, 255, 255, 255};
+        SDL_Color rowC   = (SDL_Color){255, 255, 255, 255};
+
+        // Título
+        if (lblCreate(&menu->lblTopTitle, renderer, assets->font, "TOP 5", titleC) != OK)
+            return SDL_ERR;
+
+        // Posición del TOP (lo ubicamos a la izquierda)
+        int topX = menu->scoreBoxRect.x + 30;
+        int topY = menu->scoreBoxRect.y + 70;
+        int gapY = 32;
+
+        menu->lblTopTitle.rect.x = topX;
+        menu->lblTopTitle.rect.y = menu->scoreBoxRect.y + 25;
+
+        // Filas
+        for (int i = 0; i < menu->topCount; i++) {
+            char line[128];
+            snprintf(line, sizeof(line), "%d) %s  -  %d",
+                    i + 1,
+                    top[i].namePlayer,
+                    top[i].score);
+
+            if (lblCreate(&menu->lblTop[i], renderer, assets->font, line, rowC) != OK)
+                return SDL_ERR;
+
+            menu->lblTop[i].rect.x = topX;
+            menu->lblTop[i].rect.y = topY + i * gapY;
+        }
     }
 
     return OK;
@@ -165,6 +217,20 @@ void mainMenuRender(SDL_Renderer *renderer, tMainMenu *menu, tAssets *assets)
 {
     SDL_RenderCopy(renderer, assets->background, NULL, NULL);
     SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
+    
+    // ===== Panel TOP (gris transparente) =====
+    if (menu->topCount > 0)
+    {
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+        // relleno gris con transparencia
+        SDL_SetRenderDrawColor(renderer, 25, 25, 25, 170);
+        SDL_RenderFillRect(renderer, &menu->scoreBoxRect);
+
+        // borde sutil
+        SDL_SetRenderDrawColor(renderer, 160, 160, 160, 110);
+        SDL_RenderDrawRect(renderer, &menu->scoreBoxRect);
+    }
 
     SDL_Texture *tex;
 
@@ -225,6 +291,20 @@ void mainMenuRender(SDL_Renderer *renderer, tMainMenu *menu, tAssets *assets)
     SDL_RenderCopy(renderer, menu->lblSP.texture, NULL, &menu->lblSP.rect);
     SDL_RenderCopy(renderer, menu->lblMP.texture, NULL, &menu->lblMP.rect);
     SDL_RenderCopy(renderer, menu->lblExit.texture, NULL, &menu->lblExit.rect);
+
+    // ===== Render TOP =====
+    if (menu->topCount > 0)
+    {
+        if (menu->lblTopTitle.texture)
+            SDL_RenderCopy(renderer, menu->lblTopTitle.texture, NULL, &menu->lblTopTitle.rect);
+
+        for (int i = 0; i < menu->topCount; i++)
+        {
+            if (menu->lblTop[i].texture)
+                SDL_RenderCopy(renderer, menu->lblTop[i].texture, NULL, &menu->lblTop[i].rect);
+        }
+    }
+
 }
 
 void mainMenuDestroy(tMainMenu *menu)
@@ -241,6 +321,20 @@ void mainMenuDestroy(tMainMenu *menu)
     sound_destroy(menu->btnSP.melody);
     sound_destroy(menu->btnMP.melody);
     sound_destroy(menu->btnExit.melody);
+
+    if (menu->lblTopTitle.texture) {
+        SDL_DestroyTexture(menu->lblTopTitle.texture);
+        menu->lblTopTitle.texture = NULL;
+    }
+
+    for (int i = 0; i < menu->topCount; i++) {
+        if (menu->lblTop[i].texture) {
+            SDL_DestroyTexture(menu->lblTop[i].texture);
+            menu->lblTop[i].texture = NULL;
+        }
+    }
+    menu->topCount = 0;
+
 }
 
 // =========================================================

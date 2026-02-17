@@ -228,7 +228,6 @@ int main(int argc, char *argv[]) {
 
         case SCREEN_EXIT:
             //printf("DEBUG main: Cambiando a SCREEN_EXIT\n");
-            mostrarTop5("stats.dat");
             running = false;
         break;
 

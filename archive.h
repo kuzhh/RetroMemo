@@ -6,6 +6,6 @@
 #include "game.h"
 
 int guardarRegistro(tPlayer *);
-int mostrarTop5(const char *);
+int mostrarTop(const char *m, tPlayer top[5]);
 
 #endif //ARCHIVE_H_INCLUDEDD
