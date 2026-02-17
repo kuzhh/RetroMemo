@@ -4,6 +4,7 @@
 
 #define INITIAL_CAPACITY 8
 
+//funcion que inicializa el vector
 int vector_init(tVector *v, size_t elem_size)
 {
     if (!v || elem_size == 0)
@@ -11,15 +12,16 @@ int vector_init(tVector *v, size_t elem_size)
 
     v->size = 0;
     v->capacity = INITIAL_CAPACITY;
-    v->elem_size = elem_size;
+    v->elem_size = elem_size; //tam
 
-    v->data = malloc(v->capacity * elem_size);
+    v->data = malloc(v->capacity * elem_size); //reservo la memoria
     if (!v->data)
         return 0;
 
     return 1;
 }
 
+//aca evaluo la capacidad del vector, adaptandolo
 int vector_reserve(tVector *v, size_t new_capacity)
 {
     if (!v || new_capacity <= v->capacity)
@@ -34,6 +36,7 @@ int vector_reserve(tVector *v, size_t new_capacity)
     return 1;
 }
 
+// evaluo y agrego elem al fnal del vector
 int vector_push_back(tVector *v, const void *elem)
 {
     if (!v || !elem)
@@ -53,14 +56,16 @@ int vector_push_back(tVector *v, const void *elem)
     return 1;
 }
 
+//devuelve el elem en la pos index
 void *vector_get(tVector *v, size_t index)
 {
     if (!v || index >= v->size)
         return NULL;
 
-    return (char *)v->data + index * v->elem_size;
+    return (char *)v->data + index * v->elem_size; //mov calc
 }
 
+//devuelve cuantos elem se cargaron
 size_t vector_size(const tVector *v)
 {
     if (!v)
@@ -69,6 +74,7 @@ size_t vector_size(const tVector *v)
     return v->size;
 }
 
+//libera mem
 void vector_destroy(tVector *v)
 {
     if (!v)
@@ -79,3 +85,4 @@ void vector_destroy(tVector *v)
     v->size = 0;
     v->capacity = 0;
 }
+
