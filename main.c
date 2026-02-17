@@ -1,3 +1,25 @@
+/*============================================
+=                 RETRO-MEMO TEST
+= INTEGRANTES
+=
+= Apellido: Castillo, Rodrigo Nahuel
+= DNI: 44258511
+= Entrega: Si
+= -------------
+= Apellido: Villalba, Lucas Daniel
+= DNI: 44413521
+= Entrega: Si
+= -------------
+= Apellido: Scarpino, Maria Victoria
+= DNI: 44816746
+= Entrega: Si
+= -------------
+= Apellido: Gahona Ramirez, Antonella Patricia
+= DNI: 45928557
+= Entrega: Si
+==============================================*/
+
+
 #include "library.h"
 
 #include "assets.h"
