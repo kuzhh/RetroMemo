@@ -1,8 +1,7 @@
 #ifndef SCOREBOARD_H_INCLUDED
 #define SCOREBOARD_H_INCLUDED
 
-#define SCORE_MAX_ENTRIES 5
-#define SCORE_NAME_MAX    64
+#include "library.h"
 
 typedef struct
 {

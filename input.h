@@ -1,17 +1,7 @@
 #ifndef INPUT_H_INCLUDED
 #define INPUT_H_INCLUDED
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_mixer.h>
-
-#include <stdio.h>
-#include <stdbool.h>
-
-#define OK 0
-#define SDL_ERR 1
-#define MAX_TEXT_INPUT 50
+#include "library.h"
 
 typedef struct
 {

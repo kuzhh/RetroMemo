@@ -1,6 +1,4 @@
 #include "scoreboard.h"
-#include <stdio.h>
-#include <string.h>
 
 static void sortDesc(tScoreEntry a[], int n)
 {

@@ -1,13 +1,4 @@
 #include "sound.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
-#define MIXER_CANAL_LIBRE -1 // Reproduce en el primer canal libre disponible
-#define MIXER_CANAL_PRINCIPAL 0 //canal para la musica principal.
-#define BUFFER_AUDIO 1024
-#define MONO 1
 
 tFormatsSnd sound_start()
 {
@@ -47,7 +38,7 @@ tSound* sound_load(const char *path)
         return NULL;
     }
 
-    // Detectar extensi�n
+    // Detectar extension
     const char *ext = strrchr(path, '.');
     //si es MP3
     if (ext && strcmp(ext, ".mp3") == 0) {

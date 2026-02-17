@@ -1,37 +1,11 @@
 #ifndef BOARD_H_INCLUDED
 #define BOARD_H_INCLUDED
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_mixer.h>
+#include "library.h"
 
 #include "assets.h"
 #include "sound.h"
 
-#define SCREEN_WIDTH 1366 //ancho
-#define SCREEN_HEIGHT 768 //alto
-
-#define SDL_MAIN_HANDLED
-
-#define OK 0
-#define ERR -1
-
-#define LOW_ROWS 3
-#define LOW_COLS 4
-
-#define MID_ROWS 4
-#define MID_COLS 4
-
-#define HIGH_ROWS 4
-#define HIGH_COLS 5
-
-#define CARD_W 256
-#define CARD_H 144
 
 typedef struct
 {
@@ -43,7 +17,7 @@ typedef struct
     int id; //esto identifica los pares
     tSound *sound_Matched;//sonido correcto
     tSound *sound_Not_Matched;//sonido fallo
-} tCard; //esto ser�a una unica tarjeta
+} tCard; //esto seria una unica tarjeta
 
 typedef struct
 {
@@ -57,9 +31,8 @@ void shuffleCards(tBoard*);
 int boardInit(tBoard*, int, int);
 void boardDestroy(tBoard*);
 void boardRender(SDL_Renderer*, tBoard*, tCardSet*);
+void boardRenderHover(SDL_Renderer*, tBoard*, tCardSet*, int);
 
 int boardGetCardAt(tBoard*, int, int);
-
-void boardRenderHover(SDL_Renderer *, tBoard *, tCardSet *, int );
 
 #endif // BOARD_H_INCLUDED

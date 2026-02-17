@@ -1,5 +1,16 @@
 #include "assets.h"
 
+// Arrays de paths para cartas
+const char* ds_card_paths[MAX_CARD_TYPES] = {
+    SET_CARD_DS_1, SET_CARD_DS_2, SET_CARD_DS_3, SET_CARD_DS_4, SET_CARD_DS_5,
+    SET_CARD_DS_6, SET_CARD_DS_7, SET_CARD_DS_8, SET_CARD_DS_9, SET_CARD_DS_10
+};
+
+const char* greek_card_paths[MAX_CARD_TYPES] = {
+    SET_CARD_GR_1, SET_CARD_GR_2, SET_CARD_GR_3, SET_CARD_GR_4, SET_CARD_GR_5,
+    SET_CARD_GR_6, SET_CARD_GR_7, SET_CARD_GR_8, SET_CARD_GR_9, SET_CARD_GR_10
+};
+
 int cardsetLoad(tCardSet* cardSet, SDL_Renderer* renderer, CardSetType type)
 {
     const char** card_paths = (type == CSET_DS) ? ds_card_paths : greek_card_paths;

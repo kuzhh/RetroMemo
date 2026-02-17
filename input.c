@@ -1,5 +1,4 @@
 #include "input.h"
-#include <string.h>
 
 int pointInRect(int x, int y, SDL_Rect* r)
 {
@@ -64,7 +63,7 @@ bool handleEvents(tInput* input)
                 for(int i = 0; event.text.text[i] && input->textInputLen < MAX_TEXT_INPUT - 1; i++)
                     input->textInput[input->textInputLen++] = event.text.text[i];
                 
-                // Asegurar null terminator siempre al final de escribir
+                // Asegurar null siempre al final de escribir
                 input->textInput[input->textInputLen] = '\0'; 
             }
             break;

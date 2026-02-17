@@ -1,15 +1,10 @@
 #ifndef GAME_H_INCLUDED
 #define GAME_H_INCLUDED
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_mixer.h>
+#include "library.h"
 
 #include "input.h"
 #include "board.h"
-
-#define MAX_PLAYERS 2
 
 typedef enum {STATE_PLAYING, STATE_GAMEOVER} GameState;
 

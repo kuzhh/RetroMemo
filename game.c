@@ -1,34 +1,6 @@
 #include "game.h"
-
 #include "scoreboard.h"
-
 #include "board.h"
-
-#define SCORE_FILE "scores.txt"
-
-/*
-#include "input.h"
-#include "assets.h"
-#include "screen.h"
-#include <string.h>
-#include <stdlib.h>
-#include <time.h> // biblios que podriamos agregar, por las dudas lo dejo asi */
-
-/*FUNCION PARA MEZCLAR CARTAS (capaz sirve)
-static void mezclar(int* a, int n)
-{
-    for(int i = 0; i < n - 1; i++)// recorro
-    {
-        int j = i + rand() % (n - i);// elijo una pos al azar
-
-        int aux = a[i];// intercambio
-        a[i] = a[j];
-        a[j] = aux;
-    }
-}
-
---- HECHO : shuffleCards en board.c/.h
-*/
 
 /*  Inicializa el juego:
     -setea estado inicial
@@ -37,7 +9,8 @@ static void mezclar(int* a, int n)
     -calcula totalPairs a partir del board
 */
 
-int gameInit(tGame * game, tBoard * board, int playerCount) {
+int gameInit(tGame *game, tBoard *board, int playerCount)
+{
     int i;
 
     if (!game || !board)
@@ -55,11 +28,12 @@ int gameInit(tGame * game, tBoard * board, int playerCount) {
     game->startTime = 0;
     game->turnStartTime = 0;
 
-    for (i = 0; i < playerCount; i++) {
+    for (i = 0; i < playerCount; i++)
+    {
         game->players[i].score = 0;
         game->players[i].pairsFound = 0; // evito basura ADD
-        game->players[i].moves = 0; // idem ADD
-        game->players[i].streak = 0; //idem
+        game->players[i].moves = 0;      // idem ADD
+        game->players[i].streak = 0;     // idem
     }
 
     game->totalPairs = board->totalCards / 2;
@@ -80,25 +54,27 @@ int gameInit(tGame * game, tBoard * board, int playerCount) {
         * no suma pares / no cambia score
         * si hay 2 jugadores, cambia turno (0 <-> 1)
 */
-void gameOnPairResolved(tGame * game, int isMatch) {
+void gameOnPairResolved(tGame *game, int isMatch)
+{
     if (!game || game->playerCount <= 0)
         return;
 
     // MOVIMIENTOS -> Cuenta intentos (cada comparación de 2 cartas).
     game->players[game->currentPlayer].moves++;
 
-    if (isMatch) {
+    if (isMatch)
+    {
         // Incrementa pares encontrados
         game->players[game->currentPlayer].pairsFound++;
 
-        //Incrementa racha
+        // Incrementa racha
         game->players[game->currentPlayer].streak++;
 
         // SCORE: Ahora cada par vale 100 puntos.
         int basePoints = 100;
 
-        //Si tiene racha, incremento
-        if(game->players[game->currentPlayer].streak >= 2)
+        // Si tiene racha, incremento
+        if (game->players[game->currentPlayer].streak >= 2)
         {
             basePoints = (int)(basePoints * 1.75);
         }
@@ -116,17 +92,19 @@ void gameOnPairResolved(tGame * game, int isMatch) {
         suma sólo los pts base*/
 
         // El jugador continúa su turno
-    } else {
-        //Si falla, no tiene más racha
+    }
+    else
+    {
+        // Si falla, no tiene más racha
         game->players[game->currentPlayer].streak = 0;
 
-        //y se le aplica penalización
+        // y se le aplica penalización
         game->players[game->currentPlayer].score -= 10;
-        //pero si score < 0, lo deja en 0
-        if(game->players[game->currentPlayer].score < 0)
+        // pero si score < 0, lo deja en 0
+        if (game->players[game->currentPlayer].score < 0)
             game->players[game->currentPlayer].score = 0;
 
-        //cambia turno (solo en MP)
+        // cambia turno (solo en MP)
         if (game->playerCount == 2)
             game->currentPlayer = 1 - game->currentPlayer;
     }
@@ -138,16 +116,17 @@ void gameOnPairResolved(tGame * game, int isMatch) {
     -devuelve -1 si hay empate
     -si hay 1 jugador, devuelve 0 (es el único)
 */
-int gameGetWinnerIndex(const tGame * game) {
-    if (!game || game -> playerCount <= 0)
+int gameGetWinnerIndex(const tGame *game)
+{
+    if (!game || game->playerCount <= 0)
         return -1;
 
-    if (game -> playerCount == 1)
+    if (game->playerCount == 1)
         return 0;
 
     // 2 jugadores
-    int p0 = game -> players[0].pairsFound;
-    int p1 = game -> players[1].pairsFound;
+    int p0 = game->players[0].pairsFound;
+    int p1 = game->players[1].pairsFound;
 
     if (p0 > p1)
         return 0;
@@ -161,7 +140,7 @@ int gameGetWinnerIndex(const tGame * game) {
     -inserta los jugadores actuales (1 o 2) <<<manteniendo Top 5>>>>
     -guarda el ranking actualizado
 */
-int gameCommitScoresToFile(const tGame * game) // guardar score
+int gameCommitScoresToFile(const tGame *game) // guardar score
 {
     if (!game)
         return 0;
@@ -169,12 +148,13 @@ int gameCommitScoresToFile(const tGame * game) // guardar score
     tScoreEntry entries[SCORE_MAX_ENTRIES];
     int count = 0;
 
-    if (!scoreboardLoad(SCORE_FILE, entries, & count))
+    if (!scoreboardLoad(SCORE_FILE, entries, &count))
         return 0;
 
-    for (int i = 0; i < game -> playerCount; i++) {
-        scoreboardInsertTop5(entries, & count, game -> players[i].namePlayer,
-            game -> players[i].score);
+    for (int i = 0; i < game->playerCount; i++)
+    {
+        scoreboardInsertTop5(entries, &count, game->players[i].namePlayer,
+                             game->players[i].score);
     }
 
     if (!scoreboardSave(SCORE_FILE, entries, count))

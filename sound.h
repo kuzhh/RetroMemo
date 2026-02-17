@@ -1,10 +1,7 @@
 #ifndef SONIDOS_H_INCLUDED
 #define SONIDOS_H_INCLUDED
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
 
-#define AMPLITUD_TONO 8192
-#define FREC_MUESTREO 44100
+#include "library.h"
 
 //estructura de formato de audios soportados y error.
 typedef enum {
@@ -14,11 +11,10 @@ typedef enum {
     SOUND_OGG = 0x02,
 }tFormatsSnd;
 
-
 //estructura
 typedef struct {
     Mix_Chunk* chunk;   // efectos (WAV)
-    Mix_Music* music;   // m�sica (MP3)
+    Mix_Music* music;   // musica (MP3)
     int isTone;
 }tSound;
 

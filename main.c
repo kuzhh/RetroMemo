@@ -1,24 +1,14 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_ttf.h>
-#include <stdbool.h>
-#include <stdio.h>
-
-// #define SDL_MAIN_HANDLED
+#include "library.h"
 
 #include "assets.h"
 #include "game.h"
 #include "input.h"
 #include "screen.h"
 
-#define OK 0
-#define SDL_ERR 1
-
 int main(int argc, char *argv[]) {
     tScreen screen = {
         .window = NULL,
-    .renderer = NULL,
+        .renderer = NULL,
     };
 
     if (screenInitialize(&screen, SCREEN_TITLE, SCREEN_WIDTH, SCREEN_HEIGHT) !=
@@ -110,11 +100,9 @@ int main(int argc, char *argv[]) {
                 gameInit(&game, &board, game.playerCount);
 
             if (game.playerCount == 1)
-                playSPInit(&playSP, screen.renderer, &assets, &game, &board,
-                            &setCard);
+                playSPInit(&playSP, screen.renderer, &assets, &game, &board, &setCard);
             else if (game.playerCount == 2)
-                playMPInit(&playMP, screen.renderer, &assets, &game, &board,
-                            &setCard);
+                playMPInit(&playMP, screen.renderer, &assets, &game, &board, &setCard);
             }
 
             if (currentScreen == SCREEN_GAME_MID) {
@@ -123,11 +111,9 @@ int main(int argc, char *argv[]) {
                 gameInit(&game, &board, game.playerCount);
 
                 if (game.playerCount == 1)
-                    playSPInit(&playSP, screen.renderer, &assets, &game, &board,
-                                &setCard);
+                    playSPInit(&playSP, screen.renderer, &assets, &game, &board, &setCard);
                 else if (game.playerCount == 2)
-                    playMPInit(&playMP, screen.renderer, &assets, &game, &board,
-                                &setCard);
+                    playMPInit(&playMP, screen.renderer, &assets, &game, &board, &setCard);
             }
 
             if (currentScreen == SCREEN_GAME_HIGH) {
@@ -136,25 +122,21 @@ int main(int argc, char *argv[]) {
                 gameInit(&game, &board, game.playerCount);
 
                 if (game.playerCount == 1)
-                    playSPInit(&playSP, screen.renderer, &assets, &game, &board,
-                                &setCard);
+                    playSPInit(&playSP, screen.renderer, &assets, &game, &board, &setCard);
                 else if (game.playerCount == 2)
-                    playMPInit(&playMP, screen.renderer, &assets, &game, &board,
-                                &setCard);
+                    playMPInit(&playMP, screen.renderer, &assets, &game, &board, &setCard);
             }
 
             if (currentScreen == SCREEN_GAMEOVER) {
                 if (configSource == SCREEN_CONFIG_SINGLE)
                 {
                     playSPExitDestroy(&playSPExit);
-                    playSPExitInit(&playSPExit, screen.renderer, &assets, &game, &board,
-                                    &setCard, previousScreen);
+                    playSPExitInit(&playSPExit, screen.renderer, &assets, &game, &board, &setCard, previousScreen);
                 }
                 else
                 {
                     playMPExitDestroy(&playMPExit);
-                    playMPExitInit(&playMPExit, screen.renderer, &assets, &game, &board,
-                                    &setCard, previousScreen);
+                    playMPExitInit(&playMPExit, screen.renderer, &assets, &game, &board, &setCard, previousScreen);
                 }
             }
 
@@ -220,8 +202,7 @@ int main(int argc, char *argv[]) {
                 playSPUpdate(&playSP, &game, &board, &input, &currentScreen);
                 playSPRender(screen.renderer, &playSP, &assets, &board, &input);
             } else if (game.playerCount == 2) {
-                playMPUpdate(&playMP, &game, &board, &input, screen.renderer, &assets,
-                            &currentScreen);
+                playMPUpdate(&playMP, &game, &board, &input, screen.renderer, &assets, &currentScreen);
                 playMPRender(screen.renderer, &playMP, &assets, &board, &game, &input);
             }
         break;
@@ -260,7 +241,7 @@ int main(int argc, char *argv[]) {
 
         SDL_RenderPresent(screen.renderer);
 
-        SDL_Delay(16); /*aprox 60 fps*/
+        SDL_Delay(16);
     }
 
     sound_finish();
