@@ -2,206 +2,220 @@
 #define SCREEN_H_INCLUDED
 
 #include "library.h"
+#include "settings.h"
 
 #include "assets.h"
 #include "game.h"
 #include "input.h"
 #include "sound.h"
 
-typedef enum
-{
-    SCREEN_MAIN,
-    SCREEN_CONFIG_SINGLE,
-    SCREEN_CONFIG_MULTI,
-    SCREEN_SET_CARDS,
-    SCREEN_SET_DIFFICULT,
-    SCREEN_GAME_LOW,
-    SCREEN_GAME_MID,
-    SCREEN_GAME_HIGH,
-    SCREEN_GAMEOVER,
-    SCREEN_EXIT
+typedef enum {
+  SCREEN_MAIN,
+  SCREEN_CONFIG_SINGLE,
+  SCREEN_CONFIG_MULTI,
+  SCREEN_SET_CARDS,
+  SCREEN_SET_DIFFICULT,
+  SCREEN_GAME_LOW,
+  SCREEN_GAME_MID,
+  SCREEN_GAME_HIGH,
+  SCREEN_GAMEOVER,
+  SCREEN_SETTINGS,
+  SCREEN_EXIT
 } ScreenType;
 
-typedef struct
-{
-    SDL_Window *window;
-    SDL_Renderer *renderer;
+typedef struct {
+  SDL_Window *window;
+  SDL_Renderer *renderer;
 } tScreen;
 
-typedef struct
-{
-    SDL_Rect rect;
-    SDL_Texture *texture;
+typedef struct {
+  SDL_Rect rect;
+  SDL_Texture *texture;
 } tLabel;
 
-typedef struct
-{
-    tButton btnSP;
-    tButton btnMP;
-    tButton btnExit;
+typedef struct {
+  tButton btnSP;
+  tButton btnMP;
+  tButton btnExit;
+  tButton btnSettings;
 
-    tLabel lblSP;
-    tLabel lblMP;
-    tLabel lblExit;
+  tLabel lblSP;
+  tLabel lblMP;
+  tLabel lblExit;
+  tLabel lblSettings;
 
-    SDL_Rect logoRect;
-    SDL_Rect scoreBoxRect;
+  SDL_Rect logoRect;
+  SDL_Rect scoreBoxRect;
+  SDL_Rect settingsBtnRect;
 
-    // ===== TOP 5 =====
-    tLabel lblTopTitle;            // "TOP 5" (opcional, pero queda lindo)
-    tLabel lblTop[MAX_TOP];        // filas del top
-    int topCount;                  // 0..5
+  // ===== TOP 5 =====
+  tLabel lblTopTitle;     // "TOP 5" (opcional, pero queda lindo)
+  tLabel lblTop[MAX_TOP]; // filas del top
+  int topCount;           // 0..5
 
-    tSound *melody;
+  tSound *melody;
 } tMainMenu;
 
-typedef struct
-{
-    tButton btn1S;
-    tButton btn2S;
-    tButton btnBack;
+typedef struct {
+  tButton btn1S;
+  tButton btn2S;
+  tButton btnBack;
 
-    tLabel lbl1S;
-    tLabel lbl2S;
+  tLabel lbl1S;
+  tLabel lbl2S;
 
-    char setCardChoosen[MAX_TEXT_INPUT];
+  char setCardChoosen[MAX_TEXT_INPUT];
 
-    SDL_Rect logoRect;
+  SDL_Rect logoRect;
 } tSetCardMenu;
 
-typedef struct
-{
-    tButton btnLow;
-    tButton btnMid;
-    tButton btnHigh;
-    tButton btnBack;
+typedef struct {
+  tButton btnLow;
+  tButton btnMid;
+  tButton btnHigh;
+  tButton btnBack;
 
-    tLabel lblLow;
-    tLabel lblMid;
-    tLabel lblHigh;
+  tLabel lblLow;
+  tLabel lblMid;
+  tLabel lblHigh;
 
-    SDL_Rect logoRect;
+  SDL_Rect logoRect;
 } tSetDiffMenu;
 
-typedef struct
-{
-    tButton btnInputName;
-    tButton btnBack;
-    tButton btnContinuar;
+typedef struct {
+  tButton btnInputName;
+  tButton btnBack;
+  tButton btnContinuar;
 
-    tLabel lblInputName;
-    tLabel lblBack;
-    tLabel lblContinuar;
+  tLabel lblInputName;
+  tLabel lblBack;
+  tLabel lblContinuar;
 
-    SDL_Rect logoRect;
+  SDL_Rect logoRect;
+  char errorMsg[MAX_TEXT_INPUT];
+  int errorTimer;
 } tSinglePlayerScreen;
 
-typedef struct
-{
-    tButton btnInputName1;
-    tButton btnInputName2;
-    tButton btnBack;
-    tButton btnContinuar;
+typedef struct {
+  tButton btnInputName1;
+  tButton btnInputName2;
+  tButton btnBack;
+  tButton btnContinuar;
 
-    tLabel lblInputName1;
-    tLabel lblInputName2;
-    tLabel lblBack;
-    tLabel lblContinuar;
+  tLabel lblInputName1;
+  tLabel lblInputName2;
+  tLabel lblBack;
+  tLabel lblContinuar;
 
-    SDL_Rect logoRect;
-    char textInput1[MAX_TEXT_INPUT];
-    int textInputLen1;
-    int textActive1;
-    char textInput2[MAX_TEXT_INPUT];
-    int textInputLen2;
-    int textActive2;
+  SDL_Rect logoRect;
+  char textInput1[MAX_TEXT_INPUT];
+  int textInputLen1;
+  int textActive1;
+  char textInput2[MAX_TEXT_INPUT];
+  int textInputLen2;
+  int textActive2;
+  char errorMsg[MAX_TEXT_INPUT];
+  int errorTimer;
 } tMultiplayerScreen;
 
-typedef struct
-{
-    tButton btnBack;
+typedef struct {
+  tButton btnVolUp;
+  tButton btnVolDown;
+  tButton btnToggleNames;
+  tButton btnApply;
+  tButton btnCancel;
 
-    tLabel lblPlayerName;
-    tLabel lblPlayerScore;
-    tLabel lblBack;
+  tLabel lblTitle;
+  tLabel lblVolume;
+  tLabel lblNamesTitle;
+  tLabel lblApply;
+  tLabel lblCancel;
 
-    tSelection selection;
-    tCardSet *activeSet;
+  tSettings tempSettings;
+  SDL_Rect logoRect;
+} tSettingsScreen;
 
-    int scoreValue;    // score “actual” copiado desde game en Update
-    int scoreRendered; // último score que se renderizó (para detectar cambios)
+typedef struct {
+  tButton btnBack;
+
+  tLabel lblPlayerName;
+  tLabel lblPlayerScore;
+  tLabel lblBack;
+
+  tSelection selection;
+  tCardSet *activeSet;
+
+  int scoreValue;    // score “actual” copiado desde game en Update
+  int scoreRendered; // último score que se renderizó (para detectar cambios)
 } tPlaySPScreen;
 
-typedef struct
-{
-    tButton btnBack;
-    tLabel lblBack;
+typedef struct {
+  tButton btnBack;
+  tLabel lblBack;
 
-    tLabel lblPlayerName[MAX_PLAYERS];
-    tLabel lblPlayerScore[MAX_PLAYERS];
+  tLabel lblPlayerName[MAX_PLAYERS];
+  tLabel lblPlayerScore[MAX_PLAYERS];
 
-    tSelection selection;
-    tCardSet *activeSet;
+  tSelection selection;
+  tCardSet *activeSet;
 
-    int activePlayer; // 0 = player1, 1 = player2
-    int lastPlayer;
-    int scoreValue[2];
-    int scoreRendered[2];
+  int activePlayer; // 0 = player1, 1 = player2
+  int lastPlayer;
+  int scoreValue[2];
+  int scoreRendered[2];
 } tPlayMPScreen;
 
-typedef struct
-{
-    tButton btnTryAgain;
-    tButton btnPantallaInicio;
-    tButton btnExit;
+typedef struct {
+  tButton btnTryAgain;
+  tButton btnPantallaInicio;
+  tButton btnExit;
 
-    tLabel lblPlayerName;
-    tLabel lblPlayerScore;
-    tLabel lblPlayerMoves;
-    tLabel lblTryAgain;
-    tLabel lblPantallaInicio;
-    tLabel lblExit;
+  tLabel lblPlayerName;
+  tLabel lblPlayerScore;
+  tLabel lblPlayerMoves;
+  tLabel lblTryAgain;
+  tLabel lblPantallaInicio;
+  tLabel lblExit;
 
-    tSelection selection;
-    tCardSet *activeSet;
+  tSelection selection;
+  tCardSet *activeSet;
 
-    SDL_Rect logoRect;
-    SDL_Rect scoreBoxRect;
+  SDL_Rect logoRect;
+  SDL_Rect scoreBoxRect;
 
-    int scoreValue;    // score “actual” copiado desde game en Update
-    int scoreRendered; // último score que se renderizó (para detectar cambios)
+  int scoreValue;    // score “actual” copiado desde game en Update
+  int scoreRendered; // último score que se renderizó (para detectar cambios)
 
-    ScreenType currentDifficulty; // dificultad actual para "Volver a jugar"
+  ScreenType currentDifficulty; // dificultad actual para "Volver a jugar"
 } tPlaySPScreenExit;
 
-typedef struct
-{
-    tButton btnTryAgain;
-    tButton btnPantallaInicio;
-    tButton btnExit;
+typedef struct {
+  tButton btnTryAgain;
+  tButton btnPantallaInicio;
+  tButton btnExit;
 
-    tLabel lblTryAgain;
-    tLabel lblPantallaInicio;
-    tLabel lblExit;
+  tLabel lblTryAgain;
+  tLabel lblPantallaInicio;
+  tLabel lblExit;
 
-    tLabel lblP1Name;
-    tLabel lblP1Score;
-    tLabel lblP1Moves;
-    tLabel lblP2Name;
-    tLabel lblP2Score;
-    tLabel lblP2Moves;
+  tLabel lblP1Name;
+  tLabel lblP1Score;
+  tLabel lblP1Moves;
+  tLabel lblP2Name;
+  tLabel lblP2Score;
+  tLabel lblP2Moves;
 
-    tSelection selection;
-    tCardSet *activeSet;
+  tSelection selection;
+  tCardSet *activeSet;
 
-    SDL_Rect logoRect;
-    SDL_Rect scoreBoxRectP1;
-    SDL_Rect scoreBoxRectP2;
+  SDL_Rect logoRect;
+  SDL_Rect scoreBoxRectP1;
+  SDL_Rect scoreBoxRectP2;
 
-    int scoreValue;    // score “actual” copiado desde game en Update
-    int scoreRendered; // último score que se renderizó (para detectar cambios)
+  int scoreValue;    // score “actual” copiado desde game en Update
+  int scoreRendered; // último score que se renderizó (para detectar cambios)
 
-    ScreenType currentDifficulty; // dificultad actual para "Volver a jugar"
+  ScreenType currentDifficulty; // dificultad actual para "Volver a jugar"
 } tPlayMPScreenExit;
 
 int screenInitialize(tScreen *, const char *, int, int);
@@ -215,12 +229,14 @@ void mainMenuDestroy(tMainMenu *);
 
 int singlePlayerInit(tSinglePlayerScreen *, SDL_Renderer *, tAssets *);
 void singlePlayerUpdate(tSinglePlayerScreen *, tInput *, ScreenType *, tGame *);
-void singlePlayerRender(SDL_Renderer *, tSinglePlayerScreen *, tAssets *, tInput *);
+void singlePlayerRender(SDL_Renderer *, tSinglePlayerScreen *, tAssets *,
+                        tInput *);
 void singlePlayerDestroy(tSinglePlayerScreen *);
 
 int multiPlayerInit(tMultiplayerScreen *, SDL_Renderer *, tAssets *);
 void multiPlayerUpdate(tMultiplayerScreen *, tInput *, ScreenType *, tGame *);
-void multiPlayerRender(SDL_Renderer *, tMultiplayerScreen *, tAssets *, tInput *);
+void multiPlayerRender(SDL_Renderer *, tMultiplayerScreen *, tAssets *,
+                       tInput *);
 void multiPlayerDestroy(tMultiplayerScreen *);
 
 int setCardMenuInit(tSetCardMenu *, SDL_Renderer *, tAssets *);
@@ -233,25 +249,41 @@ void setDiffMenuUpdate(tSetDiffMenu *, tInput *, ScreenType *);
 void setDiffMenuRender(SDL_Renderer *, tSetDiffMenu *, tAssets *);
 void setDiffMenuDestroy(tSetDiffMenu *);
 
-int playSPInit(tPlaySPScreen *, SDL_Renderer *, tAssets *, tGame *, tBoard *, tSetCardMenu *);
+int playSPInit(tPlaySPScreen *, SDL_Renderer *, tAssets *, tGame *, tBoard *,
+               tSetCardMenu *);
 void playSPUpdate(tPlaySPScreen *, tGame *, tBoard *, tInput *, ScreenType *);
-void playSPRender(SDL_Renderer *, tPlaySPScreen *, tAssets *, tBoard *, tInput *);
+void playSPRender(SDL_Renderer *, tPlaySPScreen *, tAssets *, tBoard *,
+                  tInput *);
 void playSPDestroy(tPlaySPScreen *);
 
-int playMPInit(tPlayMPScreen *, SDL_Renderer *, tAssets *, tGame *, tBoard *, tSetCardMenu *);
-void playMPUpdate(tPlayMPScreen *, tGame *, tBoard *, tInput *, SDL_Renderer *, tAssets *, ScreenType *);
-void playMPRender(SDL_Renderer *, tPlayMPScreen *, tAssets *, tBoard *, tGame *, tInput *);
+int playMPInit(tPlayMPScreen *, SDL_Renderer *, tAssets *, tGame *, tBoard *,
+               tSetCardMenu *);
+void playMPUpdate(tPlayMPScreen *, tGame *, tBoard *, tInput *, SDL_Renderer *,
+                  tAssets *, ScreenType *);
+void playMPRender(SDL_Renderer *, tPlayMPScreen *, tAssets *, tBoard *, tGame *,
+                  tInput *);
 void playMPDestroy(tPlayMPScreen *, tGame *);
 
-int playSPExitInit(tPlaySPScreenExit *, SDL_Renderer *, tAssets *, tGame *, tBoard *, tSetCardMenu *, ScreenType);
-void playSPExitUpdate(tPlaySPScreenExit *, tGame *, tBoard *, tInput *, ScreenType *);
+int playSPExitInit(tPlaySPScreenExit *, SDL_Renderer *, tAssets *, tGame *,
+                   tBoard *, tSetCardMenu *, ScreenType);
+void playSPExitUpdate(tPlaySPScreenExit *, tGame *, tBoard *, tInput *,
+                      ScreenType *);
 void playSPExitRender(SDL_Renderer *, tPlaySPScreenExit *, tAssets *, tBoard *);
 void playSPExitDestroy(tPlaySPScreenExit *);
 
-int playMPExitInit(tPlayMPScreenExit *, SDL_Renderer *, tAssets *, tGame *, tBoard *, tSetCardMenu *, ScreenType);
-void playMPExitUpdate(tPlayMPScreenExit *, tGame *, tBoard *, tInput *, ScreenType *);
-void playMPExitRender(SDL_Renderer *, tPlayMPScreenExit *, tAssets *, tBoard *, tGame *);
+int playMPExitInit(tPlayMPScreenExit *, SDL_Renderer *, tAssets *, tGame *,
+                   tBoard *, tSetCardMenu *, ScreenType);
+void playMPExitUpdate(tPlayMPScreenExit *, tGame *, tBoard *, tInput *,
+                      ScreenType *);
+void playMPExitRender(SDL_Renderer *, tPlayMPScreenExit *, tAssets *, tBoard *,
+                      tGame *);
 void playMPExitDestroy(tPlayMPScreenExit *);
 
-#endif // SCREEN_H_INCLUDED
+int settingsScreenInit(tSettingsScreen *, SDL_Renderer *, tAssets *,
+                       const tSettings *);
+void settingsScreenUpdate(tSettingsScreen *, tInput *, ScreenType *,
+                          tSettings *, ScreenType);
+void settingsScreenRender(SDL_Renderer *, tSettingsScreen *, tAssets *);
+void settingsScreenDestroy(tSettingsScreen *);
 
+#endif // SCREEN_H_INCLUDED

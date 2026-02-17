@@ -14,12 +14,13 @@
 // STD
 //===========================
 
+#include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include <time.h>
-#include <math.h>
+
 
 //===========================
 // CODES
@@ -36,7 +37,7 @@
 #define SCREEN_TITLE "Retro-MemoTest"
 #define SCREEN_WIDTH 1366 // ancho
 #define SCREEN_HEIGHT 768 // alto
-//#define SDL_MAIN_HANDLED
+// #define SDL_MAIN_HANDLED
 #define IMG_FLAGS IMG_INIT_PNG
 
 //===========================
@@ -79,9 +80,9 @@
 //===========================
 
 #define SCORE_MAX_ENTRIES 5
-#define SCORE_NAME_MAX    64
+#define SCORE_NAME_MAX 64
 #define SCORE_FILE "scores.txt"
-#define	MAX_TOP 5
+#define MAX_TOP 5
 
 //===========================
 // SOUND
@@ -90,8 +91,8 @@
 #define AMPLITUD_TONO 8192
 #define FREC_MUESTREO 44100
 
-#define MIXER_CANAL_LIBRE -1 // Reproduce en el primer canal libre disponible
-#define MIXER_CANAL_PRINCIPAL 0 //canal para la musica principal.
+#define MIXER_CANAL_LIBRE -1    // Reproduce en el primer canal libre disponible
+#define MIXER_CANAL_PRINCIPAL 0 // canal para la musica principal.
 #define BUFFER_AUDIO 1024
 #define MONO 1
 
@@ -115,6 +116,9 @@
 #define BUTTON_PRESSED "img/btn_normal.png"
 #define BUTTON_BACK "img/back.png"
 #define SCORE_BOX "img/score_box.png"
+#define SETTINGS "img/settings.png"
+#define PLUS "img/plus.png"
+#define MINUS "img/minus.png"
 
 // Set 1 (Dark Souls)
 #define SET_CARD_BACK_1 "img/ds_back.png"
@@ -141,7 +145,5 @@
 #define SET_CARD_GR_8 "img/greek_card8.png"
 #define SET_CARD_GR_9 "img/greek_card9.png"
 #define SET_CARD_GR_10 "img/greek_card10.png"
-
-
 
 #endif // LIBRARY_H_INCLUDED
