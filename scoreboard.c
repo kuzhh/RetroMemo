@@ -1,5 +1,6 @@
 #include "scoreboard.h"
 
+//funcion de ordenamiento descendiente por puntaje
 static void sortDesc(tScoreEntry a[], int n)
 {
     for(int i=0;i<n-1;i++)
@@ -12,6 +13,7 @@ static void sortDesc(tScoreEntry a[], int n)
             }
 }
 
+//carga de puntaje en archivo
 int scoreboardLoad(const char* filename, tScoreEntry out[], int* outCount)
 {
     FILE* f = fopen(filename, "r");
@@ -21,7 +23,7 @@ int scoreboardLoad(const char* filename, tScoreEntry out[], int* outCount)
     *outCount = 0;
 
     if(!f)  
-        return 1; // si no existe, arrancamos vacío (no es error)
+        return 1; // si no existe, arranca vacio
 
     while(*outCount < SCORE_MAX_ENTRIES)
     {
@@ -43,6 +45,7 @@ int scoreboardLoad(const char* filename, tScoreEntry out[], int* outCount)
     return 1;
 }
 
+//escritura del archivo
 int scoreboardSave(const char* filename, const tScoreEntry entries[], int count)
 {
     FILE* f = fopen(filename, "w");
@@ -55,6 +58,7 @@ int scoreboardSave(const char* filename, const tScoreEntry entries[], int count)
     return 1;
 }
 
+//agrega/ordena el top5
 void scoreboardInsertTop5(tScoreEntry entries[], int* count, const char* name, int score)
 {
     if(!count || !name) return;
@@ -80,4 +84,5 @@ void scoreboardInsertTop5(tScoreEntry entries[], int* count, const char* name, i
     entries[minIdx].score = score;
     sortDesc(entries, *count);
 }
+
 
