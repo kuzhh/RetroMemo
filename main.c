@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
   ScreenType currentScreen = SCREEN_MAIN;
   ScreenType previousScreen = SCREEN_MAIN;
   ScreenType configSource =
-      SCREEN_MAIN; // Track if we came from Single or Multi config
+      SCREEN_MAIN; // Rastrear si venimos de "single" o de "multi"
   // Estado a modificar con eventos
   bool running = true;
 
@@ -122,7 +122,6 @@ int main(int argc, char *argv[]) {
     // chequeo de pantallas para no iniciar la screen cada frame
     if (currentScreen != previousScreen) {
       // ===== Recargar Main Menu si venimos de GAMEOVER (para refrescar TOP)
-      // =====
       if (currentScreen == SCREEN_MAIN && previousScreen == SCREEN_GAMEOVER) {
         mainMenuDestroy(&mainMenu);
         mainMenuInit(&mainMenu, screen.renderer, &assets);
