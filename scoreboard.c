@@ -36,8 +36,6 @@ int scoreboardLoad(const char* filename, tScoreEntry out[], int* outCount)
         out[*outCount].score = score;
         (*outCount)++;
 
-        int c;
-        while((c = fgetc(f)) != '\n' && c != EOF) {}
     }
 
     fclose(f);
@@ -82,3 +80,4 @@ void scoreboardInsertTop5(tScoreEntry entries[], int* count, const char* name, i
     entries[minIdx].score = score;
     sortDesc(entries, *count);
 }
+
