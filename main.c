@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
   input.textInputLen = 0;
   input.textActive = 0;
 
-  // iniciar mixer
+  // inicia mixer
   tFormatsSnd formatsSnd = sound_start();
   if (formatsSnd == SOUND_ERR)
   {
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
   settingsLoad(&settings);
   settingsApply(&settings);
 
-  // Declarar board
+  // Declara board
   tBoard board = {0};
   tGame game = {0};
 
@@ -104,12 +104,11 @@ int main(int argc, char *argv[])
   // pantalla a mostrar
   ScreenType currentScreen = SCREEN_MAIN;
   ScreenType previousScreen = SCREEN_MAIN;
-  ScreenType configSource = SCREEN_MAIN; // Rastrear si venimos de "single" o de "multi"
+  ScreenType configSource = SCREEN_MAIN; // Rastrea si venimos de single o de multi
 
   // Estado a modificar con eventos
   bool running = true;
-
-  // OK
+  
   printf("All good!\n");
 
   // Primary loop
