@@ -254,3 +254,4 @@ void playMPExitRender(SDL_Renderer *, tPlayMPScreenExit *, tAssets *, tBoard *, 
 void playMPExitDestroy(tPlayMPScreenExit *);
 
 #endif // SCREEN_H_INCLUDED
+
