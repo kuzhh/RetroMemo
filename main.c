@@ -78,9 +78,6 @@ int main(int argc, char *argv[]) {
     // Estado a modificar con eventos
     bool running = true;
 
-    // Inicia reproduccion de audio infinitamente.
-    sound_play(mainMenu.melody, -1);
-
     // OK
     printf("All good!\n");
 
@@ -93,7 +90,7 @@ int main(int argc, char *argv[]) {
         ScreenType lastScreenState = currentScreen;
 
         // chequeo de pantallas para no iniciar la screen cada frame
-        if (currentScreen != previousScreen) 
+        if (currentScreen != previousScreen)
         {
             // ===== Recargar Main Menu si venimos de GAMEOVER (para refrescar TOP) =====
             if (currentScreen == SCREEN_MAIN && previousScreen == SCREEN_GAMEOVER)

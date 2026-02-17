@@ -54,6 +54,7 @@ int boardInit(tBoard *board, int rows, int cols)
         board->cards[i].id = i / 2;
 
         // cargo sonido cartas
+        board->cards[i].sound_Click = sound_load(SOUND_CLICK);
         board->cards[i].sound_Matched = sound_load(SOUND_MATCHED);
         board->cards[i].sound_Not_Matched = sound_load(SOUND_NOT_MATCHED);
     }

@@ -95,6 +95,7 @@
 #define BUFFER_AUDIO 1024
 #define MONO 1
 
+#define SOUND_CLICK "snd/Card.wav"
 #define SOUND_MATCHED "snd/Correcto.wav"
 #define SOUND_NOT_MATCHED "snd/Fallo.wav"
 #define CLICK "snd/Click.wav"

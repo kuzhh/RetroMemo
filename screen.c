@@ -179,6 +179,8 @@ int mainMenuInit(tMainMenu *menu, SDL_Renderer *renderer, tAssets *assets)
             menu->lblTop[i].rect.y = topY + i * gapY;
         }
     }
+    // Inicia reproduccion de audio infinitamente.
+    sound_play(menu->melody, -1);
 
     return OK;
 }
@@ -217,7 +219,7 @@ void mainMenuRender(SDL_Renderer *renderer, tMainMenu *menu, tAssets *assets)
 {
     SDL_RenderCopy(renderer, assets->background, NULL, NULL);
     SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
-    
+
     // ===== Panel TOP (gris transparente) =====
     if (menu->topCount > 0)
     {
@@ -1318,6 +1320,7 @@ void playSPUpdate(tPlaySPScreen *SP, tGame *game, tBoard *board, tInput *input,
     if (SP->selection.firstSelected == -1)
     {
         SP->selection.firstSelected = clicked;
+        sound_play(card->sound_Click,0);//reproduce click primera seleccion
     }
     else if (SP->selection.secondSelected == -1)
     {
@@ -1567,6 +1570,9 @@ void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input,
     if (MP->selection.firstSelected == -1)
     {
         MP->selection.firstSelected = clicked;
+        // Null-check
+        if(card->sound_Click)
+            sound_play(card->sound_Click,0);
         return;
     }
     else if (MP->selection.secondSelected == -1)

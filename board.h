@@ -15,6 +15,7 @@ typedef struct
     int isFlipped;
     int isMatched;
     int id; //esto identifica los pares
+    tSound *sound_Click;//sonido seleccion
     tSound *sound_Matched;//sonido correcto
     tSound *sound_Not_Matched;//sonido fallo
 } tCard; //esto seria una unica tarjeta
