@@ -223,7 +223,7 @@ void mainMenuRender(SDL_Renderer *renderer, tMainMenu *menu, tAssets *assets) {
   SDL_RenderCopy(renderer, assets->logo, NULL, &menu->logoRect);
   SDL_RenderCopy(renderer, assets->settings, NULL, &menu->btnSettings.rect);
 
-  // ===== Panel TOP (gris transparente) =====
+  // ===== Panel TOP gris transparente =====
 
   if (menu->topCount > 0) {
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -477,7 +477,7 @@ void singlePlayerRender(SDL_Renderer *renderer, tSinglePlayerScreen *single, tAs
     if (strlen(txtBuf) > 0 || input->textActive) {
       SDL_Color txtColor = {255, 255, 255, 255};
 
-      // Espacio dummy si está vacío para calcular altura
+      // Espacio dummy si está vacío para calcular alt
       SDL_Surface *surf = TTF_RenderText_Blended(
           assets->font, (strlen(txtBuf) > 0) ? txtBuf : " ", txtColor);
       if (surf) 
@@ -631,7 +631,7 @@ void multiPlayerUpdate(tMultiplayerScreen *multi, tInput *input, ScreenType *cur
 
   // CLICKS EN INPUTS
   if (input->mouseReleased) {
-    // 1. Click en Input 1
+    // Click en Input 1
     if (pointInRect(input->mouseX, input->mouseY, &multi->btnInputName1.rect)) {
       if (!multi->textActive1) {
         // Si venimos del 2, guardamos su estado
@@ -653,7 +653,7 @@ void multiPlayerUpdate(tMultiplayerScreen *multi, tInput *input, ScreenType *cur
         SDL_StartTextInput();
       }
     }
-    // 2. Click en Input 2
+    // Click en Input 2
     else if (pointInRect(input->mouseX, input->mouseY,
                          &multi->btnInputName2.rect)) {
       if (!multi->textActive2) {
@@ -676,7 +676,7 @@ void multiPlayerUpdate(tMultiplayerScreen *multi, tInput *input, ScreenType *cur
         SDL_StartTextInput();
       }
     }
-    // 3. Click Afuera
+    // Click Afuera
     else if (!pointInRect(input->mouseX, input->mouseY,
                           &multi->btnContinuar.rect)) {
       if (multi->textActive1) {
@@ -1200,7 +1200,7 @@ int playSPInit(tPlaySPScreen *SP, SDL_Renderer *renderer, tAssets *assets, tGame
   else
     SP->activeSet = &assets->greekSet;
 
-  // Cargar sonido botón back
+  // Carga sonido botón back
   SP->btnBack.melody = sound_load(CLICK);
 
   return OK;
@@ -1209,18 +1209,15 @@ int playSPInit(tPlaySPScreen *SP, SDL_Renderer *renderer, tAssets *assets, tGame
 void playSPUpdate(tPlaySPScreen *SP, tGame *game, tBoard *board, tInput *input, ScreenType *currentScreen) {
   Uint32 currentTime = SDL_GetTicks();
 
-  // evita crash si algo viene NULL
   if (!SP || !game || !board || !input || !currentScreen)
     return;
 
   if (SP->selection.waiting) {
     if (currentTime - SP->selection.waitStart > 800) {
 
-      // acceso vía helper REAL
       tCard *c1 = boardCardAt(board, SP->selection.firstSelected);
       tCard *c2 = boardCardAt(board, SP->selection.secondSelected);
 
-      // blindaje extra por si el índice fue inválido
       if (c1 && c2) {
         c1->isFlipped = 0;
         c2->isFlipped = 0;
@@ -1272,7 +1269,7 @@ void playSPUpdate(tPlaySPScreen *SP, tGame *game, tBoard *board, tInput *input, 
     SP->selection.firstSelected = clicked;
     if (card->sound_Click)
       sound_play(card->sound_Click, 0);
-    return; // <- CLAVE
+    return; 
   } else if (SP->selection.secondSelected == -1) {
     if (clicked == SP->selection.firstSelected)
       return;
@@ -1554,17 +1551,14 @@ void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input, 
       c1->isMatched = 1;
       c2->isMatched = 1;
 
-      // sumar SOLO cuando hay match (regla 100 por par)
-      gameOnPairResolved(game, 1); // match
+      // suma SOLO cuando hay match
+      gameOnPairResolved(game, 1); 
 
       // Copiamos el score para que Render refresque el label
       MP->scoreValue[p] = game->players[p].score;
 
       MP->selection.firstSelected = -1;
       MP->selection.secondSelected = -1;
-
-      // sound_play(c2->sound_Matched,0);
-
       // Null-check
       if (c2->sound_Matched)
         sound_play(c2->sound_Matched, 0);
@@ -1575,16 +1569,7 @@ void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input, 
       // no match
       gameOnPairResolved(game, 0);
 
-      // Copiamos el score para que Render refresque el label
-      //(ahora hay penalty)
       MP->scoreValue[p] = game->players[p].score;
-
-      // Antes tenia esto aca
-      // SP->scoreValue = game->players[0].score;
-      // (No hace falta, porque en no-match el score no cambia. Lo dejo
-      // comentado por si quieren.) SP->scoreValue = game->players[0].score;
-
-      // sound_play(c2->sound_Not_Matched,0);
 
       // Null-check
       if (c2->sound_Not_Matched)
