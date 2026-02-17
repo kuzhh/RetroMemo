@@ -4,6 +4,7 @@
 #include "game.h"
 #include "input.h"
 #include "screen.h"
+#include "archive.h"
 
 int main(int argc, char *argv[]) {
     tScreen screen = {
@@ -132,11 +133,14 @@ int main(int argc, char *argv[]) {
                 {
                     playSPExitDestroy(&playSPExit);
                     playSPExitInit(&playSPExit, screen.renderer, &assets, &game, &board, &setCard, previousScreen);
+                    guardarRegistro(&game.players[0]);
                 }
                 else
                 {
                     playMPExitDestroy(&playMPExit);
                     playMPExitInit(&playMPExit, screen.renderer, &assets, &game, &board, &setCard, previousScreen);
+                    guardarRegistro(&game.players[0]);
+                    guardarRegistro(&game.players[1]);
                 }
             }
 
@@ -218,12 +222,13 @@ int main(int argc, char *argv[]) {
             {
                 //printf("DEBUG main: Cambiando a SCREEN_GAMEOVER\n");
                 playMPExitUpdate(&playMPExit, &game, &board, &input, &currentScreen);
-                playMPExitRender(screen.renderer, &playMPExit, &assets, &board);
+                playMPExitRender(screen.renderer, &playMPExit, &assets, &board, &game);
             }
         break;
 
         case SCREEN_EXIT:
             //printf("DEBUG main: Cambiando a SCREEN_EXIT\n");
+            mostrarTop5("stats.dat");
             running = false;
         break;
 
