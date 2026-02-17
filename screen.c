@@ -1,7 +1,11 @@
+#include <stdio.h>
+#include <string.h>
+
 #include "screen.h"
 #include "board.h"
 #include "game.h"
 #include "archive.h"
+
 
 // =========================================================
 // FUNCIONES AUXILIARES
@@ -45,7 +49,8 @@ int screenInitialize(tScreen *screen, const char *title, int w, int h)
 
     if (TTF_Init())
     {
-        printf("Error inicializando TTF INIT: %s\n", IMG_GetError());
+        // printf("Error inicializando TTF INIT: %s\n", IMG_GetError()); // eliminado: error incorrecto
+        printf("Error inicializando TTF INIT: %s\n", TTF_GetError());    // modificado
         return SDL_ERR;
     }
 
@@ -165,7 +170,8 @@ int mainMenuInit(tMainMenu *menu, SDL_Renderer *renderer, tAssets *assets)
         menu->lblTopTitle.rect.y = menu->scoreBoxRect.y + 25;
 
         // Filas
-        for (int i = 0; i < menu->topCount; i++) {
+        for (int i = 0; i < menu->topCount; i++)
+        {
             char line[128];
             snprintf(line, sizeof(line), "%d) %s  -  %d",
                     i + 1,
@@ -1267,15 +1273,32 @@ void playSPUpdate(tPlaySPScreen *SP, tGame *game, tBoard *board, tInput *input,
 {
     Uint32 currentTime = SDL_GetTicks();
 
+    // modificado: blindaje mínimo (evita crash si algo viene NULL)
+    if(!SP || !game || !board || !input || !currentScreen)
+        return;
+
     if (SP->selection.waiting)
     {
         if (currentTime - SP->selection.waitStart > 800)
         {
-            tCard *c1 = &board->cards[SP->selection.firstSelected];
-            tCard *c2 = &board->cards[SP->selection.secondSelected];
+            // eliminado: acceso directo por array (no compatible si board->cards ahora es vector)
+            // tCard *c1 = &board->cards[SP->selection.firstSelected];
+            // tCard *c2 = &board->cards[SP->selection.secondSelected];
 
-            c1->isFlipped = 0;
-            c2->isFlipped = 0;
+            // eliminado: nombre de función inexistente
+            // tCard *c1 = board_get_card(board, SP->selection.firstSelected);
+            // tCard *c2 = board_get_card(board, SP->selection.secondSelected);
+
+            // modificado: acceso vía helper REAL (compatible con TDA vector)
+            tCard *c1 = boardCardAt(board, SP->selection.firstSelected);
+            tCard *c2 = boardCardAt(board, SP->selection.secondSelected);
+
+            // modificado: blindaje extra por si el índice fue inválido
+            if(c1 && c2)
+            {
+                c1->isFlipped = 0;
+                c2->isFlipped = 0;
+            }
 
             SP->selection.firstSelected = -1;
             SP->selection.secondSelected = -1;
@@ -1297,7 +1320,8 @@ void playSPUpdate(tPlaySPScreen *SP, tGame *game, tBoard *board, tInput *input,
         printf("Guardado SCREEN %d\n", *currentScreen);
 
         // reproduce sonido
-        sound_play(SP->btnBack.melody, 0);
+        if(SP->btnBack.melody)               // modificado: null-check
+            sound_play(SP->btnBack.melody, 0);
 
         return;
     }
@@ -1310,7 +1334,13 @@ void playSPUpdate(tPlaySPScreen *SP, tGame *game, tBoard *board, tInput *input,
     if (clicked == -1)
         return;
 
-    tCard *card = &board->cards[clicked];
+    // eliminado: acceso directo por array (no compatible si board->cards ahora es vector)
+    // tCard *card = &board->cards[clicked];
+
+    // modificado: acceso vía helper REAL (compatible con TDA vector)
+    tCard *card = boardCardAt(board, clicked);
+    if (!card)
+        return;
 
     if (card->isFlipped || card->isMatched)
         return;
@@ -1320,7 +1350,9 @@ void playSPUpdate(tPlaySPScreen *SP, tGame *game, tBoard *board, tInput *input,
     if (SP->selection.firstSelected == -1)
     {
         SP->selection.firstSelected = clicked;
-        sound_play(card->sound_Click,0);//reproduce click primera seleccion
+        if (card->sound_Click)
+            sound_play(card->sound_Click, 0);
+        return; // <- CLAVE
     }
     else if (SP->selection.secondSelected == -1)
     {
@@ -1329,42 +1361,52 @@ void playSPUpdate(tPlaySPScreen *SP, tGame *game, tBoard *board, tInput *input,
 
         SP->selection.secondSelected = clicked;
 
-        tCard *c1 = &board->cards[SP->selection.firstSelected];
-        tCard *c2 = &board->cards[SP->selection.secondSelected];
+        tCard *c1 = boardCardAt(board, SP->selection.firstSelected);
+        tCard *c2 = boardCardAt(board, SP->selection.secondSelected);
+
+        if (!c1 || !c2)
+        {
+            SP->selection.firstSelected = -1;
+            SP->selection.secondSelected = -1;
+            SP->selection.waiting = 0;
+            return;
+        }
 
         if (c1->id == c2->id)
         {
             c1->isMatched = 1;
             c2->isMatched = 1;
 
-            // game->players[0].score++; -> Rompia el pairsfound
             gameOnPairResolved(game, 1);
+            SP->scoreValue = game->players[0].score;
 
             SP->selection.firstSelected = -1;
             SP->selection.secondSelected = -1;
 
-            sound_play(c2->sound_Matched, 0);
+            if (c2->sound_Matched)
+                sound_play(c2->sound_Matched, 0);
         }
         else
         {
             SP->selection.waiting = 1;
-            gameOnPairResolved(game, 0);
-            SP->scoreValue = game->players[0].score;
             SP->selection.waitStart = currentTime;
 
-            sound_play(c2->sound_Not_Matched, 0);
+            gameOnPairResolved(game, 0);
+            SP->scoreValue = game->players[0].score;
+
+            if (c2->sound_Not_Matched)
+                sound_play(c2->sound_Not_Matched, 0);
         }
     }
-
-    // DEBUG DE PAIRSFOUNDS
-    // printf("Pairsfound %d\n", game->players[0].pairsFound);
 
     if ((game->players[0].pairsFound == 6 && game->totalPairs == 6) ||
         (game->players[0].pairsFound == 8 && game->totalPairs == 8) ||
         (game->players[0].pairsFound == 10 && game->totalPairs == 10))
         *currentScreen = SCREEN_GAMEOVER;
+
     return;
-}
+}   // <<< ESTA llave es la que te falta antes de playSPRender
+
 
 void playSPRender(SDL_Renderer *renderer, tPlaySPScreen *SP, tAssets *assets,
                   tBoard *board, tInput *input)
@@ -1519,18 +1561,34 @@ void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input,
     Uint32 currentTime = SDL_GetTicks();
 
     // Blindaje básico (evita error si algo está NULL)
-    if (!MP || !game || !board || !board->cards || !input)
+    // eliminado: !board->cards (antes era puntero). Ahora board->cards es tVector.
+    // if (!MP || !game || !board || !board->cards || !input)
+    //     return;
+
+    // modificado: blindaje compatible con TDA vector
+    if (!MP || !game || !board || !input || !currentScreen)
+        return;
+    if (!boardIsReady(board)) // modificado: reemplaza el viejo "board->cards != NULL"
         return;
 
     if (MP->selection.waiting)
     {
         if (currentTime - MP->selection.waitStart > 800)
         {
-            tCard *c1 = &board->cards[MP->selection.firstSelected];
-            tCard *c2 = &board->cards[MP->selection.secondSelected];
+            // eliminado: acceso directo por array (no compatible con vector)
+            // tCard *c1 = &board->cards[MP->selection.firstSelected];
+            // tCard *c2 = &board->cards[MP->selection.secondSelected];
 
-            c1->isFlipped = 0;
-            c2->isFlipped = 0;
+            // modificado: acceso vía helper REAL (vector)
+            tCard *c1 = boardCardAt(board, MP->selection.firstSelected);
+            tCard *c2 = boardCardAt(board, MP->selection.secondSelected);
+
+            // modificado: blindaje extra
+            if (c1 && c2)
+            {
+                c1->isFlipped = 0;
+                c2->isFlipped = 0;
+            }
 
             MP->selection.firstSelected = -1;
             MP->selection.secondSelected = -1;
@@ -1544,15 +1602,16 @@ void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input,
         pointInRect(input->mouseX, input->mouseY, &MP->btnBack.rect))
     {
         *currentScreen = SCREEN_SET_DIFFICULT;
-        sound_play(MP->btnBack.melody, 0);
+
+        // modificado: null-check
+        if (MP->btnBack.melody)
+            sound_play(MP->btnBack.melody, 0);
+
         return;
     }
 
     if (!input->mousePressed && !input->mouseReleased)
         return;
-
-    // debug:
-    // printf("Click detectado\n");
 
     int clicked = boardGetCardAt(board, input->mouseX, input->mouseY);
 
@@ -1560,7 +1619,15 @@ void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input,
     if (clicked < 0 || clicked >= board->totalCards)
         return;
 
-    tCard *card = &board->cards[clicked];
+    // eliminado: acceso directo por array (no compatible con vector)
+    // tCard *card = &board->cards[clicked];
+
+    // modificado: acceso vía helper REAL (vector)
+    tCard *card = boardCardAt(board, clicked);
+
+    // modificado: blindaje
+    if (!card)
+        return;
 
     if (card->isFlipped || card->isMatched)
         return;
@@ -1574,6 +1641,7 @@ void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input,
         if(card->sound_Click)
             sound_play(card->sound_Click,0);
         return;
+
     }
     else if (MP->selection.secondSelected == -1)
     {
@@ -1594,8 +1662,22 @@ void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input,
             return;
         }
 
-        tCard *c1 = &board->cards[MP->selection.firstSelected];
-        tCard *c2 = &board->cards[MP->selection.secondSelected];
+        // eliminado: acceso directo por array (no compatible con vector)
+        // tCard *c1 = &board->cards[MP->selection.firstSelected];
+        // tCard *c2 = &board->cards[MP->selection.secondSelected];
+
+        // modificado: acceso vía helper REAL (vector)
+        tCard *c1 = boardCardAt(board, MP->selection.firstSelected);
+        tCard *c2 = boardCardAt(board, MP->selection.secondSelected);
+
+        // modificado: blindaje
+        if (!c1 || !c2)
+        {
+            MP->selection.firstSelected = -1;
+            MP->selection.secondSelected = -1;
+            MP->selection.waiting = 0;
+            return;
+        }
 
         int p = MP->lastPlayer;
         if (p < 0 || p >= game->playerCount)
@@ -1659,6 +1741,7 @@ void playMPUpdate(tPlayMPScreen *MP, tGame *game, tBoard *board, tInput *input,
 
     return;
 }
+
 
 void playMPRender(SDL_Renderer *renderer, tPlayMPScreen *MP, tAssets *assets,
                   tBoard *board, tGame *game, tInput *input)
@@ -1856,7 +1939,7 @@ int playSPExitInit(tPlaySPScreenExit *SP, SDL_Renderer *renderer,
             255,
             255};
 
-    // Área útil del panel (evita la columna izquierda del sprite)
+    // evita la columna izquierda del sprite
     const int innerX = boxX + 95;
     const int topY = boxY + 140;
     const int gapY = 42;
@@ -2142,7 +2225,7 @@ int playMPExitInit(tPlayMPScreenExit *MP, SDL_Renderer *renderer,
             255,
             255};
 
-    // Área útil del panel (tu ajuste)
+    // panel
     const int innerOffsetX = 95;
     const int topOffsetY = 140;
     const int gapY = 42;
